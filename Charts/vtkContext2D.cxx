@@ -221,30 +221,28 @@ void vtkContext2D::DrawRect(float x1, float y1, float x2, float y2)
     vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
     return;
     }
-  float x[] = { x1,    y1,
+  float p[] = { x1,    y1,
                 x1+x2, y1,
                 x1+x2, y1+y2,
                 x1,    y1+y2 };
 
   // Draw the filled area of the rectangle.
   this->ApplyBrush();
-  this->Device->DrawQuad(&x[0], 4);
+  this->Device->DrawQuad(&p[0], 4);
+
+    // Draw the outline now.
+  this->ApplyPen();
+  this->Device->DrawPoly(p, 4);
+  float closeLine[] = { p[0], p[1], p[6], p[7] };
+  this->Device->DrawPoly(&closeLine[0], 2);
 }
 
 //-----------------------------------------------------------------------------
 void vtkContext2D::DrawQuad(float x1, float y1, float x2, float y2,
                             float x3, float y3, float x4, float y4)
 {
-  if (!this->Device)
-    {
-    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
-    return;
-    }
   float p[] = { x1, y1, x2, y2, x3, y3, x4, y4 };
-
-  // Draw the filled area of the quad.
-  this->ApplyBrush();
-  this->Device->DrawQuad(&p[0], 4);
+  this->DrawQuad(&p[0]);
 }
 
 //-----------------------------------------------------------------------------
@@ -259,6 +257,12 @@ void vtkContext2D::DrawQuad(float *p)
   // Draw the filled area of the quad.
   this->ApplyBrush();
   this->Device->DrawQuad(p, 4);
+
+  // Draw the outline now.
+  this->ApplyPen();
+  this->Device->DrawPoly(p, 4);
+  float closeLine[] = { p[0], p[1], p[6], p[7] };
+  this->Device->DrawPoly(&closeLine[0], 2);
 }
 
 //-----------------------------------------------------------------------------
