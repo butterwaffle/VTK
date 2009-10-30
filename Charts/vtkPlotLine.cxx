@@ -16,6 +16,7 @@
 #include "vtkPlotLine.h"
 
 #include "vtkContext2D.h"
+#include "vtkPen.h"
 #include "vtkContextDevice2D.h"
 #include "vtkPoints2D.h"
 #include "vtkTable.h"
@@ -57,16 +58,16 @@ bool vtkPlotLine::Paint(vtkContext2D *painter)
 
   if (this->Points)
     {
-    painter->SetColor(this->r, this->g, this->b, this->a);
+    painter->GetPen()->SetColor(this->r, this->g, this->b, this->a);
 
     if (this->DrawLines)
       {
-      painter->SetLineWidth(this->Width);
+      painter->GetPen()->SetWidth(this->Width);
       painter->DrawPoly(this->Points);
       }
     if (this->DrawPoints)
       {
-      painter->SetPointSize(this->Width * 3);
+      painter->GetPen()->SetWidth(this->Width*3.0);
       painter->DrawPoints(this->Points);
       }
 

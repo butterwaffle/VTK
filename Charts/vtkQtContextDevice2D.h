@@ -59,9 +59,12 @@ public:
 //ETX
 
   // Description:
-  // Set the global color for the device.
-  virtual void SetColor(int r, int g, int b, int a);
-  virtual void SetColor(int r, int g, int b);
+  // Set the color for the device using unsigned char of length 4, RGBA.
+  virtual void SetColor(unsigned char *color);
+
+  // Description:
+  // Set the color for the device using unsigned char of length 3, RGB.
+  virtual void SetColor3(unsigned char *color);
 
   // Description:
   // Set the point size for glyphs/sprites.
@@ -76,6 +79,7 @@ public:
   // of the display
   virtual void SetViewExtents(float *x);
 
+  virtual void PushMatrix();
   virtual void PopMatrix();
 
   // Description:

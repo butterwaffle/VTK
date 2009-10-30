@@ -50,20 +50,23 @@ public:
   virtual void DrawPoints(float *points, int n) = 0;
 
   // Description:
-  // Draws a rectangle
-  virtual void DrawRect(float *points, int n) { ; }
+  // Draw a quad using the specified number of points.
+  virtual void DrawQuad(float *points, int n) { ; }
 
 //BTX
   // Description:
-  // Draw some text to the screen!
+  // Draw some text to the screen.
   virtual void DrawText(float *point, vtkTextProperty *tprop,
                         const vtkStdString &string) = 0;
 //ETX
 
   // Description:
-  // Set the global color for the device.
-  virtual void SetColor(int r, int g, int b, int a) = 0;
-  virtual void SetColor(int r, int g, int b) = 0;
+  // Set the color for the device using unsigned char of length 4, RGBA.
+  virtual void SetColor(unsigned char *color) = 0;
+
+  // Description:
+  // Set the color for the device using unsigned char of length 3, RGB.
+  virtual void SetColor3(unsigned char *color) = 0;
 
   // Description:
   // Set the point size for glyphs/sprites.
@@ -74,11 +77,16 @@ public:
   virtual void SetLineWidth(float width) = 0;
 
   // Description:
-  // Supply a float array of length 4 with x1, y1, x2, y2 specifying the extents
+  // Supply a float array of length 4 with x1, y1, x2, y2 specifying the extents.
   // of the display
   virtual void SetViewExtents(float *x) = 0;
 
   // Description:
+  // Pop the matrix onto the stack.
+  virtual void PushMatrix() = 0;
+
+  // Description:
+  // Pop the matrix off the stack.
   virtual void PopMatrix() = 0;
 
   // Description:
