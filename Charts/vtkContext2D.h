@@ -37,6 +37,8 @@ class vtkTextProperty;
 
 class vtkPoints2D;
 class vtkContextDevice2D;
+class vtkPen;
+class vtkBrush;
 
 class VTK_CHARTS_EXPORT vtkContext2D : public vtkObject
 {
@@ -133,23 +135,16 @@ public:
                 const char *string);
 
   // Description:
-  // Set the color for the context with range 0-255.
-  void SetColor(unsigned char r, unsigned char g, unsigned char b,
-                unsigned char a);
-  void SetColor(unsigned char r, unsigned char g, unsigned char b);
+  // Get/Set the pen which controls the outlines of shapes as well as lines,
+  // points and related primitives.
+  void SetPen(vtkPen *pen);
+  vtkGetObjectMacro(Pen, vtkPen);
 
   // Description:
-  // Set the color for the context with range 0.0 - 1.0
-  void SetColor(double r, double g, double b, double a);
-  void SetColor(double r, double g, double b);
-
-  // Description:
-  // Sets the point size when drawing points.
-  void SetPointSize(float size);
-
-  // Description:
-  // Set the line width for any 2D line construct.
-  void SetLineWidth(float width);
+  // Get/Set the pen which controls the outlines of shapes as well as lines,
+  // points and related primitives.
+  void SetBrush(vtkBrush *brush);
+  vtkGetObjectMacro(Brush, vtkBrush);
 
 //BTX
 protected:
@@ -157,10 +152,17 @@ protected:
   ~vtkContext2D();
 
   vtkContextDevice2D *Device;
+  vtkPen *Pen;
+  vtkBrush *Brush;
 
 private:
   vtkContext2D(const vtkContext2D &); // Not implemented.
   void operator=(const vtkContext2D &);   // Not implemented.
+
+  // Apply the pen settings to the context
+  void ApplyPen();
+  // Apply the brush settings to the context
+  void ApplyBrush();
 
 //ETX
 };

@@ -145,7 +145,7 @@ void vtkOpenGLContextDevice2D::DrawPoints(float *f, int n)
 }
 
 //-----------------------------------------------------------------------------
-void vtkOpenGLContextDevice2D::DrawRect(float *f, int n)
+void vtkOpenGLContextDevice2D::DrawQuad(float *f, int n)
 {
   if (f && n > 0)
     {
@@ -169,15 +169,15 @@ void vtkOpenGLContextDevice2D::DrawText(float *point, vtkTextProperty *prop,
 }
 
 //-----------------------------------------------------------------------------
-void vtkOpenGLContextDevice2D::SetColor(int r, int g, int b, int a)
+void vtkOpenGLContextDevice2D::SetColor(unsigned char *color)
 {
-  glColor4ub(r, g, b, a);
+  glColor4ubv(color);
 }
 
 //-----------------------------------------------------------------------------
-void vtkOpenGLContextDevice2D::SetColor(int r, int g, int b)
+void vtkOpenGLContextDevice2D::SetColor3(unsigned char *color)
 {
-  glColor3ub(r, g, b);
+  glColor3ubv(color);
 }
 
 //-----------------------------------------------------------------------------
@@ -195,12 +195,17 @@ void vtkOpenGLContextDevice2D::SetLineWidth(float width)
 //-----------------------------------------------------------------------------
 void vtkOpenGLContextDevice2D::SetViewExtents(float *x)
 {
-  glMatrixMode( GL_MODELVIEW );
-  glPushMatrix();
   glLoadIdentity();
   glOrtho( x[0], x[2],
            x[1], x[3],
           -1, 0);
+}
+
+//-----------------------------------------------------------------------------
+void vtkOpenGLContextDevice2D::PushMatrix()
+{
+  glMatrixMode( GL_MODELVIEW );
+  glPushMatrix();
 }
 
 //-----------------------------------------------------------------------------

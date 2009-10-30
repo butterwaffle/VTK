@@ -103,13 +103,13 @@ void vtkQtContextDevice2D::DrawText(float *point, vtkTextProperty *prop,
 }
 
 //-----------------------------------------------------------------------------
-void vtkQtContextDevice2D::SetColor(int r, int g, int b, int a)
+void vtkQtContextDevice2D::SetColor(unsigned char *color)
 {
 
 }
 
 //-----------------------------------------------------------------------------
-void vtkQtContextDevice2D::SetColor(int r, int g, int b)
+void vtkQtContextDevice2D::SetColor3(unsigned char *color)
 {
 
 }
@@ -130,8 +130,6 @@ void vtkQtContextDevice2D::SetLineWidth(float width)
 //-----------------------------------------------------------------------------
 void vtkQtContextDevice2D::SetViewExtents(float *x)
 {
-  this->Painter->save();
-
 /*  QTransform tranform( , , ,
                        , , ,
                        , , );
@@ -139,6 +137,12 @@ void vtkQtContextDevice2D::SetViewExtents(float *x)
   cout << "SetViewExtents: " << x[0] << ", " << x[1] << ", " << x[2] << ", "
       << x[3] << endl;
   this->Painter->setWindow(x[0], x[3], x[2], -x[1]);
+}
+
+//-----------------------------------------------------------------------------
+void vtkQtContextDevice2D::PushMatrix()
+{
+  this->Painter->save();
 }
 
 //-----------------------------------------------------------------------------

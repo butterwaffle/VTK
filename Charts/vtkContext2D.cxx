@@ -17,6 +17,8 @@
 
 #include "vtkPoints2D.h"
 #include "vtkContextDevice2D.h"
+#include "vtkPen.h"
+#include "vtkBrush.h"
 
 #include "vtkFloatArray.h"
 
@@ -25,6 +27,8 @@
 #include "vtkRenderWindow.h"
 
 vtkCxxRevisionMacro(vtkContext2D, "$Revision$");
+vtkCxxSetObjectMacro(vtkContext2D, Pen, vtkPen);
+vtkCxxSetObjectMacro(vtkContext2D, Brush, vtkBrush);
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkContext2D);
@@ -53,6 +57,8 @@ void vtkContext2D::DrawLine(float x1, float y1, float x2, float y2)
     return;
     }
   float x[] = { x1, y1, x2, y2 };
+
+  this->ApplyPen();
   this->Device->DrawPoly(&x[0], 2);
 }
 
@@ -64,6 +70,8 @@ void vtkContext2D::DrawLine(float p[4])
     vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
     return;
     }
+
+  this->ApplyPen();
   this->Device->DrawPoly(&p[0], 2);
 }
 
@@ -81,6 +89,8 @@ void vtkContext2D::DrawLine(vtkPoints2D *points)
     return;
     }
   float *f = vtkFloatArray::SafeDownCast(points->GetData())->GetPointer(0);
+
+  this->ApplyPen();
   this->Device->DrawPoly(f, 2);
 }
 
@@ -98,6 +108,8 @@ void vtkContext2D::DrawPoly(float *x, float *y, int n)
     p[2*i]   = x[i];
     p[2*i+1] = y[i];
     }
+
+  this->ApplyPen();
   this->Device->DrawPoly(&p[0], n);
 }
 
@@ -115,6 +127,7 @@ void vtkContext2D::DrawPoly(vtkPoints2D *points)
   // If the points are of type float then call OpenGL directly
   float *f = vtkFloatArray::SafeDownCast(points->GetData())->GetPointer(0);
 
+  this->ApplyPen();
   this->Device->DrawPoly(f, n);
 }
 
@@ -131,6 +144,8 @@ void vtkContext2D::DrawPoly(float *points, int n)
     vtkErrorMacro(<< "Attempted to paint a line with <2 points.");
     return;
     }
+
+  this->ApplyPen();
   this->Device->DrawPoly(points, n);
 }
 
@@ -143,6 +158,8 @@ void vtkContext2D::DrawPoint(float x, float y)
     return;
     }
   float p[] = { x, y };
+
+  this->ApplyPen();
   this->Device->DrawPoints(&p[0], 1);
 }
 
@@ -160,6 +177,8 @@ void vtkContext2D::DrawPoints(float *x, float *y, int n)
     p[2*i]   = x[i];
     p[2*i+1] = y[i];
     }
+
+  this->ApplyPen();
   this->Device->DrawPoints(&p[0], n);
 }
 
@@ -176,6 +195,8 @@ void vtkContext2D::DrawPoints(vtkPoints2D *points)
 
   // If the points are of type float then call OpenGL directly
   float *f = vtkFloatArray::SafeDownCast(points->GetData())->GetPointer(0);
+
+  this->ApplyPen();
   this->Device->DrawPoints(f, n);
 }
 
@@ -188,6 +209,7 @@ void vtkContext2D::DrawPoints(float *points, int n)
     return;
     }
 
+  this->ApplyPen();
   this->Device->DrawPoints(points, n);
 }
 
@@ -203,7 +225,10 @@ void vtkContext2D::DrawRect(float x1, float y1, float x2, float y2)
                 x1+x2, y1,
                 x1+x2, y1+y2,
                 x1,    y1+y2 };
-  this->Device->DrawRect(&x[0], 4);
+
+  // Draw the filled area of the rectangle.
+  this->ApplyBrush();
+  this->Device->DrawQuad(&x[0], 4);
 }
 
 //-----------------------------------------------------------------------------
@@ -216,7 +241,10 @@ void vtkContext2D::DrawQuad(float x1, float y1, float x2, float y2,
     return;
     }
   float p[] = { x1, y1, x2, y2, x3, y3, x4, y4 };
-  this->Device->DrawRect(&p[0], 4);
+
+  // Draw the filled area of the quad.
+  this->ApplyBrush();
+  this->Device->DrawQuad(&p[0], 4);
 }
 
 //-----------------------------------------------------------------------------
@@ -227,7 +255,10 @@ void vtkContext2D::DrawQuad(float *p)
     vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
     return;
     }
-  this->Device->DrawRect(p, 4);
+
+  // Draw the filled area of the quad.
+  this->ApplyBrush();
+  this->Device->DrawQuad(p, 4);
 }
 
 //-----------------------------------------------------------------------------
@@ -285,86 +316,34 @@ void vtkContext2D::DrawText(int x, int y, vtkTextProperty *prop,
 }
 
 //-----------------------------------------------------------------------------
-void vtkContext2D::SetColor(unsigned char r, unsigned char g, unsigned char b,
-                            unsigned char a)
+inline void vtkContext2D::ApplyPen()
 {
-  if (!this->Device)
-    {
-    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
-    return;
-    }
-  this->Device->SetColor(r, g, b, a);
+  this->Device->SetColor(this->Pen->GetColor());
+  this->Device->SetLineWidth(this->Pen->GetWidth());
+  this->Device->SetPointSize(this->Pen->GetWidth());
 }
 
 //-----------------------------------------------------------------------------
-void vtkContext2D::SetColor(unsigned char r, unsigned char g, unsigned char b)
+inline void vtkContext2D::ApplyBrush()
 {
-  if (!this->Device)
-    {
-    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
-    return;
-    }
-  this->Device->SetColor(r, g, b);
-}
-
-//-----------------------------------------------------------------------------
-void vtkContext2D::SetColor(double r, double g, double b, double a)
-{
-  if (!this->Device)
-    {
-    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
-    return;
-    }
-  this->Device->SetColor(static_cast<unsigned char>(r*255),
-                         static_cast<unsigned char>(g*255),
-                         static_cast<unsigned char>(b*255),
-                         static_cast<unsigned char>(a*255));
-}
-
-//-----------------------------------------------------------------------------
-void vtkContext2D::SetColor(double r, double g, double b)
-{
-  if (!this->Device)
-    {
-    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
-    return;
-    }
-  this->Device->SetColor(static_cast<unsigned char>(r*255),
-                         static_cast<unsigned char>(g*255),
-                         static_cast<unsigned char>(b*255));
-}
-
-//-----------------------------------------------------------------------------
-void vtkContext2D::SetPointSize(float size)
-{
-  if (!this->Device)
-    {
-    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
-    return;
-    }
-  this->Device->SetPointSize(size);
-}
-
-//-----------------------------------------------------------------------------
-void vtkContext2D::SetLineWidth(float width)
-{
-  if (!this->Device)
-    {
-    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
-    return;
-    }
-  this->Device->SetLineWidth(width);
+  this->Device->SetColor(this->Brush->GetColor());
 }
 
 //-----------------------------------------------------------------------------
 vtkContext2D::vtkContext2D()
 {
   this->Device = NULL;
+  this->Pen = vtkPen::New();
+  this->Brush = vtkBrush::New();
 }
 
 //-----------------------------------------------------------------------------
 vtkContext2D::~vtkContext2D()
 {
+  this->Pen->Delete();
+  this->Pen = 0;
+  this->Brush->Delete();
+  this->Brush = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -381,5 +360,9 @@ void vtkContext2D::PrintSelf(ostream &os, vtkIndent indent)
     {
     os << "(none)" << endl;
     }
+  os << indent << "Pen: ";
+  this->Pen->PrintSelf(os, indent.GetNextIndent());
+  os << indent << "Brush: ";
+  this->Brush->PrintSelf(os, indent.GetNextIndent());
 }
 

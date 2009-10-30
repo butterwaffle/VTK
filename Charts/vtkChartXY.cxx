@@ -16,6 +16,8 @@
 #include "vtkChartXY.h"
 
 #include "vtkContext2D.h"
+#include "vtkPen.h"
+#include "vtkBrush.h"
 #include "vtkContextDevice2D.h"
 #include "vtkPoints2D.h"
 
@@ -113,8 +115,8 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
   this->YAxis->SetLabel("Y Axis");
 
   // Draw a hard wired grid right now - this should be configurable
-  painter->SetColor(0.8, 0.8, 0.8, 1.0);
-  painter->SetLineWidth(1.0);
+  painter->GetPen()->SetColorF(0.8, 0.8, 0.8);
+  painter->GetPen()->SetWidth(1.0);
   this->Grid->Paint(painter);
 
   // The origin of the plot area
@@ -137,6 +139,7 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
   plot[2] = this->XAxis->GetMaximum() + this->Geometry[4] * xScale;
   plot[1] = this->YAxis->GetMinimum() - yOrigin * yScale;
   plot[3] = this->YAxis->GetMaximum() + this->Geometry[5] * yScale;
+  painter->GetDevice()->PushMatrix();
   painter->GetDevice()->SetViewExtents(&plot[0]);
 
   // Clip drawing while plotting
@@ -159,37 +162,13 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
   painter->GetDevice()->PopMatrix();
 
   // Set the color and width, draw the axes, color and width push to axis props
-  painter->SetColor(0.0, 0.0, 0.0, 1.0);
-  painter->SetLineWidth(1.0);
+  painter->GetPen()->SetColorF(0.0, 0.0, 0.0, 1.0);
+  painter->GetPen()->SetWidth(1.0);
   this->XAxis->Paint(painter);
   this->YAxis->Paint(painter);
 
-  // Now let's try to render some test text
-  vtkPoints2D *p = vtkPoints2D::New();
-  p->SetNumberOfPoints(1);
-  p->SetPoint(0, 175, 10);
-  vtkTextProperty *prop = vtkTextProperty::New();
-  prop->SetFontSize(15);
-  prop->SetFontFamilyAsString("Arial");
-  prop->SetColor(0.0, 0.0, 0.0);
-  painter->SetPointSize(1);
-  painter->DrawPoint(300, 300);
-  prop->SetOrientation(0.0);
-  p->SetPoint(0, 300, 300);
-  painter->DrawText(p, prop, "Test Text");
-  painter->SetColor(1.0, 0.0, 0.0, 1.0);
-  p->SetPoint(0, 300, 310);
-  painter->DrawPoint(300, 310);
-  prop->SetJustificationToCentered();
-  painter->DrawText(p, prop, "Test Text");
-  painter->SetColor(0.0, 0.0, 1.0, 1.0);
-  painter->DrawPoint(300, 320);
-  p->SetPoint(0, 300, 320);
-  prop->SetJustificationToRight();
-  painter->DrawText(p, prop, "Test Text");
-
   // And a semi-transparent rectangle
-  painter->SetColor(0.75, 0.0, 0.0, 0.65);
+  painter->GetBrush()->SetColorF(0.75, 0.0, 0.0, 0.65);
   painter->DrawRect(70, 100, 50, 200);
   painter->DrawQuad(200, 100, 200, 120,
                     250, 140, 300, 80);
