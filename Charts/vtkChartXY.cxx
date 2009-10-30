@@ -169,6 +169,7 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
 
   // And a semi-transparent rectangle
   painter->GetBrush()->SetColorF(0.75, 0.0, 0.0, 0.65);
+  painter->GetPen()->SetColor(0, 0, 0, 255);
   painter->DrawRect(70, 100, 50, 200);
   painter->DrawQuad(200, 100, 200, 120,
                     250, 140, 300, 80);
