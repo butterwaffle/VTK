@@ -42,6 +42,9 @@
 #include "vtkStdString.h"
 #include "vtkTextProperty.h"
 
+#include "vtkMath.h"
+#include "vtkPointMarkTick.h"
+
 // My STL containers
 #include <vtkstd/vector>
 
@@ -199,6 +202,27 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
   painter->DrawEllipse(200, 200, 50, 50);
   painter->DrawEllipse(225, 200, 25, 100);
 */
+  // Try out the tick-mark point marker:
+#define NTICKS 64
+  vtkFloatArray* ticks = vtkFloatArray::New();
+  ticks->SetNumberOfComponents( 4 );
+  ticks->SetNumberOfTuples( NTICKS );
+  for ( int i = 0; i < NTICKS; ++ i )
+    {
+    float x, y, a, t;
+    x = i / ( NTICKS - 1. );
+    y = sin( 2. * vtkMath::Pi() * x );
+    a = ( 0.5 + 5 * x * x ) * vtkMath::Pi();
+    t = 10. * x * ( 1. - x ) * ( 1. - 4. * x ) * ( 1 - 4. * x ) + 0.75;
+    ticks->SetTuple4( i, 800 * x + 80, 200 * y + 280, a, t );
+    }
+  vtkPointMarkTick* tickMarks = vtkPointMarkTick::New();
+  tickMarks->BindParameter( "Length", 15 );
+  tickMarks->BindParameter( "Angle", ticks, 2 ); // Angle of tick to horizontal.
+  tickMarks->BindParameter( "Line Thickness", ticks, 3 ); // Thickness of tick mark line.
+  tickMarks->DrawMarks( painter, ticks, 0, ticks, 1, 0, NTICKS, 1 );
+  tickMarks->Delete();
+  ticks->Delete();
 }
 
 //-----------------------------------------------------------------------------
