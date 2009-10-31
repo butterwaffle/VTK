@@ -27,6 +27,8 @@ SET(Kit_SRCS
   vtkPlot.cxx
   vtkPlotGrid.cxx
   vtkPlotLine.cxx
+  vtkPointMark.cxx
+  vtkPointMarkTick.cxx
   vtkPoints2D.cxx
   vtkQtContextDevice2D.cxx
   vtkQtChart.cxx
@@ -50,6 +52,7 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkContextDevice2D
   vtkContextMapper2D
   vtkPlot
+  vtkPointMark
   vtkQtChart
   moc_vtkQtChart
   ABSTRACT
@@ -70,3 +73,7 @@ INCLUDE(${VTK_CMAKE_DIR}/KitCommonBlock.cmake)
 
 #TARGET_LINK_LIBRARIES(vtkCharts ${QT_LIBRARIES})
 
+  add_executable( chart MACOSX_BUNDLE
+    test.cxx
+  )
+  target_link_libraries( chart vtkCharts QVTK )
