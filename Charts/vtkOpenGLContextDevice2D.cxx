@@ -113,6 +113,10 @@ void vtkOpenGLContextDevice2D::Begin(vtkViewport* viewport)
            0.5, size[1]+0.5,
           -1, 0);
 
+  glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+  glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+  glEnable (GL_LINE_SMOOTH);
+
   this->Renderer = vtkRenderer::SafeDownCast(viewport);
   this->TextRenderer->SetRenderer(this->Renderer);
   this->IsTextDrawn = false;
