@@ -29,6 +29,7 @@ SET(Kit_SRCS
   vtkPlotLine.cxx
   vtkPointMark.cxx
   vtkPointMarkTick.cxx
+  vtkPointMarkStatBox.cxx
   vtkPoints2D.cxx
   vtkQtContextDevice2D.cxx
   vtkQtChart.cxx
