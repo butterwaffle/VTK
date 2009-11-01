@@ -22,6 +22,7 @@ SET(Kit_SRCS
   vtkContext2D.cxx
   vtkContextDevice2D.cxx
   vtkContextMapper2D.cxx
+  vtkCurveMark.cxx
   vtkOpenGLContextDevice2D.cxx
   vtkPen.cxx
   vtkPlot.cxx
