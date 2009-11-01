@@ -44,6 +44,7 @@
 
 #include "vtkMath.h"
 #include "vtkPointMarkTick.h"
+#include "vtkPointMarkStatBox.h"
 
 // My STL containers
 #include <vtkstd/vector>
@@ -221,8 +222,24 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
   tickMarks->BindParameter( "Angle", ticks, 2 ); // Angle of tick to horizontal.
   tickMarks->BindParameter( "Line Thickness", ticks, 3 ); // Thickness of tick mark line.
   tickMarks->DrawMarks( painter, ticks, 0, ticks, 1, 0, NTICKS, 1 );
+
+  vtkPointMarkStatBox* statMarks = vtkPointMarkStatBox::New();
+  statMarks->BindParameter( "Dot Size", 3. );
+  statMarks->BindParameter( "Line Thickness", 1 );
+  //statMarks->BindParameter( "Line Color", lineColor );
+  //statMarks->BindParameter( "Fill Color", fillColor );
+  statMarks->BindParameter( "Box Width", 10. );
+  statMarks->BindParameter( "Box Ascent", ticks, 3 );
+  statMarks->BindParameter( "Box Descent", ticks, 3 );
+  statMarks->BindParameter( "Whisker Ascent", 20. );
+  statMarks->BindParameter( "Whisker Descent", 30. );
+  statMarks->DrawMarks( painter, ticks, 1, ticks, 0, 0, NTICKS, 1 );
+
   tickMarks->Delete();
+  statMarks->Delete();
   ticks->Delete();
+
+  return true;
 }
 
 //-----------------------------------------------------------------------------
