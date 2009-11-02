@@ -107,6 +107,9 @@ protected:
   // We also need a label render strategy
   vtkLabelRenderStrategy *TextRenderer;
 
+  // Store whether any text has been drawn to control Start frame end frame
+  bool IsTextDrawn;
+
 private:
   vtkOpenGLContextDevice2D(const vtkOpenGLContextDevice2D &); // Not implemented.
   void operator=(const vtkOpenGLContextDevice2D &);   // Not implemented.

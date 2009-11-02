@@ -50,6 +50,7 @@ vtkStandardNewMacro(vtkOpenGLContextDevice2D);
 vtkOpenGLContextDevice2D::vtkOpenGLContextDevice2D()
 {
   this->Renderer = 0;
+  this->IsTextDrawn = false;
 #ifdef VTK_USE_QT
   this->TextRenderer = vtkQtLabelRenderStrategy::New();
 #else
@@ -91,14 +92,17 @@ void vtkOpenGLContextDevice2D::Begin(vtkViewport* viewport)
 
   this->Renderer = vtkRenderer::SafeDownCast(viewport);
   this->TextRenderer->SetRenderer(this->Renderer);
-  this->TextRenderer->StartFrame();
+  this->IsTextDrawn = false;
   this->Modified();
 }
 
 //-----------------------------------------------------------------------------
 void vtkOpenGLContextDevice2D::End()
 {
-  this->TextRenderer->EndFrame();
+  if (this->IsTextDrawn)
+    {
+    this->TextRenderer->EndFrame();
+    }
 // push a 2D matrix on the stack
   glMatrixMode( GL_PROJECTION);
   glPopMatrix();
@@ -164,6 +168,12 @@ void vtkOpenGLContextDevice2D::DrawQuad(float *f, int n)
 void vtkOpenGLContextDevice2D::DrawText(float *point, vtkTextProperty *prop,
                                   const vtkStdString &string)
 {
+  if (!this->IsTextDrawn)
+    {
+    this->IsTextDrawn = true;
+    this->TextRenderer->StartFrame();
+    }
+
   int p[] = { point[0], point[1] };
   this->TextRenderer->RenderLabel(&p[0], prop, string);
 }
