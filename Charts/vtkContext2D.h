@@ -121,6 +121,10 @@ public:
                 float x3, float y3, float x4, float y4);
   void DrawQuad(float *p);
 
+  // Description:
+  // Draw an ellipse with center at x, y and radii rx, ry.
+  void DrawEllipse(float x, float y, float rx, float ry);
+
 //BTX
   // Description:
   // Draw some text to the screen.

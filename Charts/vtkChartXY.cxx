@@ -110,7 +110,7 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
   this->XAxis->SetNumberOfTicks(8);
   this->XAxis->SetLabel("X Axis");
   this->YAxis->SetMinimum(0.0);
-  this->YAxis->SetMaximum(1.0);
+  this->YAxis->SetMaximum(-1.0);
   this->YAxis->SetNumberOfTicks(5);
   this->YAxis->SetLabel("Y Axis");
 
@@ -173,6 +173,9 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
   painter->DrawRect(70, 100, 50, 200);
   painter->DrawQuad(200, 100, 200, 120,
                     250, 140, 300, 80);
+
+  painter->DrawEllipse(200, 200, 50, 50);
+  painter->DrawEllipse(225, 200, 25, 100);
 
 }
 

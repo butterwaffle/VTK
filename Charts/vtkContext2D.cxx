@@ -266,6 +266,27 @@ void vtkContext2D::DrawQuad(float *p)
 }
 
 //-----------------------------------------------------------------------------
+void vtkContext2D::DrawEllipse(float x, float y, float rx, float ry)
+{
+  if (!this->Device)
+    {
+    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
+    return;
+    }
+  // Raterize an ellipse
+  int iterations = 100;
+  float p[2*(iterations+1)];
+  float length = 2.0 * M_PI / iterations;
+  for (int i = 0; i <= iterations; ++i)
+    {
+    p[2*i  ] = rx * cos(i * length) + x;
+    p[2*i+1] = ry * sin(i * length) + y;
+    }
+  this->ApplyPen();
+  this->Device->DrawPoly(&p[0], iterations + 1);
+}
+
+//-----------------------------------------------------------------------------
 void vtkContext2D::DrawText(vtkPoints2D *point, vtkTextProperty *prop,
                             const vtkStdString &string)
 {
