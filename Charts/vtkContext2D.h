@@ -128,15 +128,11 @@ public:
 //BTX
   // Description:
   // Draw some text to the screen.
-  void DrawText(vtkPoints2D *point, vtkTextProperty *tprop,
-                const vtkStdString &string);
-  void DrawText(int x, int y, vtkTextProperty *tprop,
-                const vtkStdString &string);
+  void DrawText(vtkPoints2D *point, const vtkStdString &string);
+  void DrawText(int x, int y, const vtkStdString &string);
 //ETX
-  void DrawText(vtkPoints2D *point, vtkTextProperty *tprop,
-                const char *string);
-  void DrawText(int x, int y, vtkTextProperty *tprop,
-                const char *string);
+  void DrawText(vtkPoints2D *point, const char *string);
+  void DrawText(int x, int y, const char *string);
 
   // Description:
   // Get/Set the pen which controls the outlines of shapes as well as lines,
@@ -150,14 +146,20 @@ public:
   void SetBrush(vtkBrush *brush);
   vtkGetObjectMacro(Brush, vtkBrush);
 
+  // Description:
+  // Get/set the text properties.
+  void SetTextProp(vtkTextProperty *prop);
+  vtkGetObjectMacro(TextProp, vtkTextProperty);
+
 //BTX
 protected:
   vtkContext2D();
   ~vtkContext2D();
 
-  vtkContextDevice2D *Device;
-  vtkPen *Pen;
-  vtkBrush *Brush;
+  vtkContextDevice2D *Device; // The underlying device
+  vtkPen *Pen;                // Outlining
+  vtkBrush *Brush;            // Fills
+  vtkTextProperty *TextProp;  // Text property
 
 private:
   vtkContext2D(const vtkContext2D &); // Not implemented.

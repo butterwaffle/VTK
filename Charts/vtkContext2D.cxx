@@ -19,6 +19,7 @@
 #include "vtkContextDevice2D.h"
 #include "vtkPen.h"
 #include "vtkBrush.h"
+#include "vtkTextProperty.h"
 
 #include "vtkFloatArray.h"
 
@@ -29,6 +30,7 @@
 vtkCxxRevisionMacro(vtkContext2D, "$Revision$");
 vtkCxxSetObjectMacro(vtkContext2D, Pen, vtkPen);
 vtkCxxSetObjectMacro(vtkContext2D, Brush, vtkBrush);
+vtkCxxSetObjectMacro(vtkContext2D, TextProp, vtkTextProperty);
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkContext2D);
@@ -287,21 +289,14 @@ void vtkContext2D::DrawEllipse(float x, float y, float rx, float ry)
 }
 
 //-----------------------------------------------------------------------------
-void vtkContext2D::DrawText(vtkPoints2D *point, vtkTextProperty *prop,
-                            const vtkStdString &string)
+void vtkContext2D::DrawText(vtkPoints2D *point, const vtkStdString &string)
 {
-  if (!this->Device)
-    {
-    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
-    return;
-    }
   float *f = vtkFloatArray::SafeDownCast(point->GetData())->GetPointer(0);
-  this->Device->DrawText(f, prop, string);
+  this->DrawText(f[0], f[1], string);
 }
 
 //-----------------------------------------------------------------------------
-void vtkContext2D::DrawText(int x, int y, vtkTextProperty *prop,
-                            const vtkStdString &string)
+void vtkContext2D::DrawText(int x, int y, const vtkStdString &string)
 {
   if (!this->Device)
     {
@@ -309,35 +304,23 @@ void vtkContext2D::DrawText(int x, int y, vtkTextProperty *prop,
     return;
     }
   float f[] = { x, y };
-  this->Device->DrawText(&f[0], prop, string);
+  this->Device->DrawText(&f[0], this->TextProp, string);
 }
 
 //-----------------------------------------------------------------------------
-void vtkContext2D::DrawText(vtkPoints2D *point, vtkTextProperty *prop,
-                            const char *string)
+void vtkContext2D::DrawText(vtkPoints2D *point, const char *string)
 {
-  if (!this->Device)
-    {
-    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
-    return;
-    }
   float *f = vtkFloatArray::SafeDownCast(point->GetData())->GetPointer(0);
   vtkStdString str = string;
-  this->Device->DrawText(f, prop, str);
+  this->DrawText(f[0], f[1], str);
 }
 
 //-----------------------------------------------------------------------------
-void vtkContext2D::DrawText(int x, int y, vtkTextProperty *prop,
-                            const char *string)
+void vtkContext2D::DrawText(int x, int y, const char *string)
 {
-  if (!this->Device)
-    {
-    vtkErrorMacro(<< "Attempted to paint with no active vtkContextDevice2D.");
-    return;
-    }
   float f[] = { x, y };
   vtkStdString str = string;
-  this->Device->DrawText(&f[0], prop, str);
+  this->DrawText(x, y, str);
 }
 
 //-----------------------------------------------------------------------------
@@ -360,6 +343,7 @@ vtkContext2D::vtkContext2D()
   this->Device = NULL;
   this->Pen = vtkPen::New();
   this->Brush = vtkBrush::New();
+  this->TextProp = vtkTextProperty::New();
 }
 
 //-----------------------------------------------------------------------------
@@ -369,6 +353,8 @@ vtkContext2D::~vtkContext2D()
   this->Pen = 0;
   this->Brush->Delete();
   this->Brush = 0;
+  this->TextProp->Delete();
+  this->TextProp = 0;
 }
 
 //-----------------------------------------------------------------------------
