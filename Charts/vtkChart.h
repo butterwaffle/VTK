@@ -48,7 +48,7 @@ public:
 
   // Description:
   // Add a plot to the chart, defaults to using the name of the y column
-  virtual vtkPlot * AddPlot(Type type) = 0;
+  virtual vtkPlot * AddPlot(Type type);
 
   // Description:
   // Get the number of plots the chart contains.

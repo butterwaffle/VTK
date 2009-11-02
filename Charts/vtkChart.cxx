@@ -31,36 +31,12 @@ vtkChart::vtkChart()
 vtkChart::~vtkChart()
 {
 }
-/*
-//-----------------------------------------------------------------------------
-void vtkChart::SetGeometry(int *p)
-{
-  if (!this->Geometry)
-    {
-    this->Geometry = vtkPoints2D::New();
-    this->Geometry->SetDataTypeToInt();
-    this->Geometry->SetNumberOfPoints(3);
-    }
-  this->Geometry->SetPoint(0, p[0], p[1]);
-  this->Geometry->SetPoint(1, p[2], p[3]);
-  this->Geometry->SetPoint(2, p[4], p[5]);
-
-  this->Modified();
-}
 
 //-----------------------------------------------------------------------------
-void vtkChart::SetGeometry(int p0, int p1, int p2, int p3, int p4, int p5)
+vtkPlot * vtkChart::AddPlot(Type type)
 {
-  int p[] = { p0, p1, p2, p3, p4, p5 };
-  this->SetGeometry(&p[0]);
+  return NULL;
 }
-
-//-----------------------------------------------------------------------------
-vtkPoints2D * vtkChart::GetGeometry()
-{
-  return this->Geometry;
-}
-*/
 
 //-----------------------------------------------------------------------------
 vtkIdType vtkChart::GetNumberPlots()
