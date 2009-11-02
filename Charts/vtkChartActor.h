@@ -66,6 +66,7 @@ public:
   // Description:
   // Get the chart object for the Actor.
   vtkGetObjectMacro(Chart, vtkChart);
+  virtual void SetChart(vtkChart *chart);
 
   // Description:
   // Returns this actor's vtkProperty2D.  Creates a property if one

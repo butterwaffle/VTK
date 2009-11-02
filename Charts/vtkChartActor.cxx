@@ -28,8 +28,9 @@
 vtkCxxRevisionMacro(vtkChartActor, "$Revision$");
 vtkStandardNewMacro(vtkChartActor);
 
-vtkCxxSetObjectMacro(vtkChartActor,Property, vtkProperty2D);
-vtkCxxSetObjectMacro(vtkChartActor,Context, vtkContext2D);
+vtkCxxSetObjectMacro(vtkChartActor, Property, vtkProperty2D);
+vtkCxxSetObjectMacro(vtkChartActor, Context, vtkContext2D);
+vtkCxxSetObjectMacro(vtkChartActor, Chart, vtkChart);
 
 //----------------------------------------------------------------------------
 // Creates an actor2D with the following defaults:
