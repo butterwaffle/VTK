@@ -149,6 +149,7 @@ ELSE(VTK_BINARY_DIR)
   IF(VTK_USE_RENDERING)
     SUBDIRS(
       AMR/Cxx
+      Charts/Cxx
       MultiBlock/Cxx
       GUI/Motif
       DataManipulation/Cxx
