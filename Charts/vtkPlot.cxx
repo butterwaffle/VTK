@@ -15,13 +15,8 @@
 
 #include "vtkPlot.h"
 
-#include "vtkContext2D.h"
-#include "vtkContextDevice2D.h"
-#include "vtkPoints2D.h"
 #include "vtkTable.h"
-#include "vtkAbstractArray.h"
-#include "vtkFloatArray.h"
-
+#include "vtkDataObject.h"
 #include "vtkObjectFactory.h"
 
 vtkCxxRevisionMacro(vtkPlot, "$Revision$");
@@ -52,6 +47,40 @@ void vtkPlot::SetColor(unsigned char r, unsigned char g, unsigned char b,
 }
 
 //-----------------------------------------------------------------------------
+void vtkPlot::SetInput(vtkTable *table)
+{
+  this->vtkContextMapper2D::SetInput(table);
+}
+
+//-----------------------------------------------------------------------------
+void vtkPlot::SetInput(vtkTable *table, const char *xColumn,
+                       const char *yColumn)
+{
+  this->vtkContextMapper2D::SetInput(table);
+  this->SetInput(table);
+  this->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_ROWS,
+                               xColumn);
+  this->SetInputArrayToProcess(1, 0, 0, vtkDataObject::FIELD_ASSOCIATION_ROWS,
+                               yColumn);
+}
+
+//-----------------------------------------------------------------------------
+void vtkPlot::SetInput(vtkTable *table, vtkIdType xColumn,
+                       vtkIdType yColumn)
+{
+  this->SetInput(table,
+                 table->GetColumnName(xColumn),
+                 table->GetColumnName(yColumn));
+}
+
+//-----------------------------------------------------------------------------
+void vtkPlot::SetInputArray(int index, const char *name)
+{
+  this->SetInputArrayToProcess(index, 0, 0, vtkDataObject::FIELD_ASSOCIATION_ROWS,
+                               name);
+}
+
+//-----------------------------------------------------------------------------
 void vtkPlot::PrintSelf(ostream &os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -59,5 +88,4 @@ void vtkPlot::PrintSelf(ostream &os, vtkIndent indent)
   os << indent << "Color: " << this->r << ", " << this->g
      << ", " << this->b << ", " << this->a << endl;
   os << indent << "Width: " << this->Width << endl;
-
 }

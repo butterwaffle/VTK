@@ -36,22 +36,19 @@ public:
   // Paint event for the XY plot, called whenever the chart needs to be drawn
   virtual bool Paint(vtkContext2D *painter) = 0;
 
-  // This is a temporary class mainly added to do some basic testing.
-  virtual void SetTable(vtkTable *table, const char *xColumn, const char *yColumn);
-  virtual void SetTable(vtkTable *table, vtkIdType xColumn, vtkIdType yColumn);
-  vtkGetObjectMacro(Table, vtkTable);
+  // Description:
+  // Set/Get the input for this object - only accepts vtkTable as input.
+  virtual void SetInput(vtkTable *input);
+  virtual vtkTable * GetInput();
 
 //BTX
 protected:
   vtkContextMapper2D();
   ~vtkContextMapper2D();
 
-  // This is not staying, but for now it is convenient. The data references
-  // will live in the data series objects which will plot their own data.
-  vtkTable *Table;
-
-  // Columns from the table that are being plotted.
-  vtkIdType XColumn, YColumn;
+  // Description:
+  // Specify the types of input we can handle.
+  virtual int FillInputPortInformation(int port, vtkInformation *info);
 
 private:
   vtkContextMapper2D(const vtkContextMapper2D &); // Not implemented.

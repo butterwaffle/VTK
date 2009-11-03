@@ -53,32 +53,26 @@ public:
   // Paint event for the XY plot, called whenever the chart needs to be drawn
   bool Paint(vtkContext2D *painter);
 
-  // Description:
-  // This is a temporary class mainly added to do some basic testing.
-  void SetTable(vtkTable *table, const char *xColumn, const char *yColumn);
-  void SetTable(vtkTable *table, vtkIdType xColumn, vtkIdType yColumn);
-  vtkGetObjectMacro(Table, vtkTable);
-
 //BTX
 protected:
   vtkPlotLine();
   ~vtkPlotLine();
 
-  // This is not staying, but for now it is convenient. The data references
-  // will live in the data series objects which will plot their own data.
-  vtkTable *Table;
+  // Description:
+  // Update the table cache.
+  bool UpdateTableCache(vtkTable *table);
 
-  // Columns from the table that are being plotted.
-  vtkIdType XColumn, YColumn;
-
+  // Description:
   // Store a well packed set of XY coordinates for this data series.
   vtkPoints2D *Points;
 
+  // Description:
+  // The point cache is marked dirty until it has been initialized.
+  bool IsCacheDirty;
+  vtkTimeStamp BuildTime;
+
   // A few test options - this should be unified into a nicer data structure
   bool DrawLines, DrawPoints;
-
-  // Plot label, used by legend
-  vtkStdString *Label;
 
 private:
   vtkPlotLine(const vtkPlotLine &); // Not implemented.

@@ -87,10 +87,10 @@ int main( int argc, char * argv [] )
   // Add multiple line plots, setting the colors etc
   vtkChart *chart = actor->GetChart();
   vtkPlot *line = chart->AddPlot(vtkChart::LINE);
-  line->SetTable(table, 0, 1);
+  line->SetInput(table, 0, 1);
   line->SetColor(255, 0, 0, 255);
   line = chart->AddPlot(vtkChart::LINE);
-  line->SetTable(table, 0, 2);
+  line->SetInput(table, 0, 2);
   line->SetColor(0, 255, 0, 255);
   line->SetWidth(2.0);
 

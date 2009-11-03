@@ -21,6 +21,8 @@
 #include "vtkTable.h"
 #include "vtkAbstractArray.h"
 #include "vtkFloatArray.h"
+#include "vtkInformation.h"
+#include "vtkExecutive.h"
 
 #include "vtkObjectFactory.h"
 
@@ -29,9 +31,9 @@ vtkCxxRevisionMacro(vtkContextMapper2D, "$Revision$");
 //-----------------------------------------------------------------------------
 vtkContextMapper2D::vtkContextMapper2D()
 {
-  this->Table = 0;
-  this->XColumn = 0;
-  this->YColumn = 0;
+  // We take 1 input and no outputs
+  this->SetNumberOfInputPorts(1);
+  this->SetNumberOfOutputPorts(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -39,40 +41,35 @@ vtkContextMapper2D::~vtkContextMapper2D()
 {
 }
 
-//-----------------------------------------------------------------------------
-void vtkContextMapper2D::SetTable(vtkTable *table,
-                                  const char *xColumn,
-                                  const char *yColumn)
+//----------------------------------------------------------------------------
+void vtkContextMapper2D::SetInput(vtkTable *input)
 {
-  this->Table = table;
-  // Currently have to iterate through the columns to match on the names
-  for (vtkIdType i = 0; i < table->GetNumberOfColumns(); ++i)
+  if(input)
     {
-    const char *name = table->GetColumnName(i);
-    if (strcmp(xColumn, name))
-      {
-      this->XColumn = i;
-      }
-    else if (strcmp(yColumn, name))
-      {
-      this->YColumn = i;
-      }
+    vtkDebugMacro(<< "Input table set.");
+    this->SetInputConnection(0, input->GetProducerPort());
     }
-  this->Modified();
+  else
+    {
+    // Setting a NULL input removes the connection.
+    vtkDebugMacro(<< "Null input table set.");
+    this->SetInputConnection(0, 0);
+    }
+}
+
+//----------------------------------------------------------------------------
+vtkTable * vtkContextMapper2D::GetInput()
+{
+  return vtkTable::SafeDownCast(this->GetExecutive()->GetInputData(0, 0));
 }
 
 //-----------------------------------------------------------------------------
-void vtkContextMapper2D::SetTable(vtkTable *table,
-                                  vtkIdType xColumn,
-                                  vtkIdType yColumn)
+int vtkContextMapper2D::FillInputPortInformation(int, vtkInformation *info)
 {
-  this->Table = table;
-
-  // Set the column IDs for the x and y columns
-  this->XColumn = xColumn;
-  this->YColumn = yColumn;
-  this->Modified();
+  info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkTable");
+  return 1;
 }
+
 
 //-----------------------------------------------------------------------------
 void vtkContextMapper2D::PrintSelf(ostream &os, vtkIndent indent)
