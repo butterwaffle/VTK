@@ -114,6 +114,7 @@ bool vtkPlotLine::UpdateTableCache(vtkTable *table)
       vtkDebugMacro(<< "Error size of x array does not equal size of y array.");
       return false;
       }
+
     this->Points = vtkPoints2D::New();
     this->Points->SetNumberOfPoints(n);
     float *x = xArray->GetPointer(0);
@@ -128,8 +129,6 @@ bool vtkPlotLine::UpdateTableCache(vtkTable *table)
     {
     vtkDebugMacro(<< "Error the x or y array was not a valid type.")
     }
-
-  this->Modified();
 }
 
 //-----------------------------------------------------------------------------
