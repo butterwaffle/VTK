@@ -51,7 +51,11 @@ public:
 
   // Description:
   // Paint event for the XY plot, called whenever the chart needs to be drawn
-  bool Paint(vtkContext2D *painter);
+  virtual bool Paint(vtkContext2D *painter);
+
+  // Description:
+  // Get the bounds for this mapper as (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax).
+  virtual void GetBounds(double bounds[4]);
 
 //BTX
 protected:
@@ -68,7 +72,6 @@ protected:
 
   // Description:
   // The point cache is marked dirty until it has been initialized.
-  bool IsCacheDirty;
   vtkTimeStamp BuildTime;
 
   // A few test options - this should be unified into a nicer data structure

@@ -21,8 +21,10 @@
 #include "vtkPoints2D.h"
 #include "vtkTable.h"
 #include "vtkFloatArray.h"
+#include "vtkDoubleArray.h"
 #include "vtkExecutive.h"
 #include "vtkTimeStamp.h"
+#include "vtkInformation.h"
 
 #include "vtkObjectFactory.h"
 
@@ -38,7 +40,6 @@ vtkPlotLine::vtkPlotLine()
   this->DrawPoints = true;
   this->DrawLines = true;
   this->Label = 0;
-  this->IsCacheDirty = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -87,47 +88,86 @@ bool vtkPlotLine::Paint(vtkContext2D *painter)
 }
 
 //-----------------------------------------------------------------------------
+void vtkPlotLine::GetBounds(double bounds[4])
+{
+  // Get the x and y arrays (index 0 and 1 respectively)
+  vtkTable *table = this->GetInput();
+  vtkDataArray *x = this->GetInputArrayToProcess(0, table);
+  vtkDataArray *y = this->GetInputArrayToProcess(1, table);
+
+  if (x && y)
+    {
+    x->GetRange(&bounds[0]);
+    y->GetRange(&bounds[2]);
+    }
+  vtkDebugMacro(<< "Bounds: " << bounds[0] << "\t" << bounds[1] << "\t"
+                << bounds[2] << "\t" << bounds[3]);
+}
+
+//-----------------------------------------------------------------------------
+template<class A, class B>
+void CopyToPoints(vtkPoints2D *points, A *a, B *b, int n)
+{
+  points->SetNumberOfPoints(n);
+  for (int i = 0; i < n; ++i)
+    {
+    points->SetPoint(i, a[i], b[i]);
+    }
+}
+
+//-----------------------------------------------------------------------------
 bool vtkPlotLine::UpdateTableCache(vtkTable *table)
 {
   // Get the x and y arrays (index 0 and 1 respectively)
-  vtkDataArray *x = this->GetInputArrayToProcess(0, table);
-  vtkDataArray *y = this->GetInputArrayToProcess(1, table);
-  vtkFloatArray *xArray = vtkFloatArray::SafeDownCast(x);
-  vtkFloatArray *yArray = vtkFloatArray::SafeDownCast(y);
-
-  // Now arrange the data so that it can be rendered quickly
-  if (xArray && yArray)
+  vtkAbstractArray *x = this->GetInputAbstractArrayToProcess(0, table);
+  vtkAbstractArray *y = this->GetInputAbstractArrayToProcess(1, table);
+  if (!x)
     {
-    if (this->Points)
-      {
-      this->Points->Delete();
-      this->Points = NULL;
-      }
-    vtkIdType n = xArray->GetSize();
-    if (n == 0)
-      {
-      vtkDebugMacro(<< "No points!");
-      return false;
-      }
-    else if (xArray->GetSize() != yArray->GetSize())
-      {
-      vtkDebugMacro(<< "Error size of x array does not equal size of y array.");
-      return false;
-      }
+    vtkErrorMacro(<< "No X column is set (index 0).");
+    return false;
+    }
+  else if (!y)
+    {
+    vtkErrorMacro(<< "No Y column is set (index 1).");
+    return false;
+    }
+  else if (x->GetSize() != y->GetSize())
+    {
+    vtkErrorMacro("The x and y columns must have the same number of elements.");
+    return false;
+    }
 
+  if (!this->Points)
+    {
     this->Points = vtkPoints2D::New();
-    this->Points->SetNumberOfPoints(n);
-    float *x = xArray->GetPointer(0);
-    float *y = yArray->GetPointer(0);
-    for (vtkIdType i = 0; i < n; ++i)
-      {
-      this->Points->SetPoint(i, x[i], y[i]);
-      }
+    }
+
+  // Figure out the type and copy to our points
+  if (x->IsA("vtkFloatArray") && y->IsA("vtkFloatArray"))
+    {
+    CopyToPoints(this->Points,
+                 vtkFloatArray::SafeDownCast(x)->GetPointer(0),
+                 vtkFloatArray::SafeDownCast(y)->GetPointer(0),
+                 x->GetSize());
     this->BuildTime.Modified();
+    double bounds[4];
+    this->GetBounds(&bounds[0]);
+    }
+  else if (x->IsA("vtkDoubleArray") && y->IsA("vtkDoubleArray"))
+    {
+    CopyToPoints(this->Points,
+                 vtkDoubleArray::SafeDownCast(x)->GetPointer(0),
+                 vtkDoubleArray::SafeDownCast(y)->GetPointer(0),
+                 x->GetSize());
+    this->BuildTime.Modified();
+    double bounds[4];
+    this->GetBounds(&bounds[0]);
     }
   else
     {
-    vtkDebugMacro(<< "Error the x or y array was not a valid type.")
+    vtkErrorMacro(<< "Error the x or y array was not a valid type."
+                  << endl << x->GetClassName()
+                  << "\t" << y->GetClassName());
     }
 }
 
@@ -136,7 +176,15 @@ void vtkPlotLine::PrintSelf(ostream &os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   // Print some details about this plot
-  os << indent << "Label: \"" << *this->Label << "\"" << endl;
+  os << indent << "Label: ";
+  if (this->Label)
+    {
+    os << "\"" << *this->Label << "\"" << endl;
+    }
+  else
+    {
+    os << "(none)" << endl;
+    }
   os << indent << "Draw lines: ";
   if (this->DrawLines)
     {
@@ -155,7 +203,7 @@ void vtkPlotLine::PrintSelf(ostream &os, vtkIndent indent)
     {
     os << "off" << endl;
     }
-  os << indent << "Width: " << this->Width << endl;
+  os << indent << "Line Width: " << this->Width << endl;
   os << indent << "Color: " << this->r << ", " << this->g
      << ", " << this->b << ", " << this->a << endl;
 }

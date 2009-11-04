@@ -13,10 +13,13 @@
 
 =========================================================================*/
 
-// .NAME vtkContextMapper2D - Abstract class for plots.
+// .NAME vtkContextMapper2D - Abstract class for 2D context mappers.
 //
 // .SECTION Description
 //
+// This class provides an abstract base for 2D context mappers. They currently
+// only accept vtkTable objects as input, but this could be expanded in the
+// future.
 
 #ifndef __vtkContextMapper2D_h
 #define __vtkContextMapper2D_h
@@ -37,6 +40,16 @@ public:
   virtual bool Paint(vtkContext2D *painter) = 0;
 
   // Description:
+  // Return bounding rect (array of four doubles) of data expressed as
+  // (xmin, xmax, ymin, ymax).
+  // Update this->Bounds as a side effect.
+  //virtual double *GetBounds()=0;
+
+  // Description:
+  // Get the bounds for this mapper as (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax).
+  virtual void GetBounds(double bounds[4]) = 0;
+
+  // Description:
   // Set/Get the input for this object - only accepts vtkTable as input.
   virtual void SetInput(vtkTable *input);
   virtual vtkTable * GetInput();
@@ -45,6 +58,10 @@ public:
 protected:
   vtkContextMapper2D();
   ~vtkContextMapper2D();
+
+  // Description:
+  // The bounding rect of the mapper expressed as (Xmin, Xmax, Ymin, Ymax).
+  double Bounds[4];
 
   // Description:
   // Specify the types of input we can handle.

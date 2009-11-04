@@ -19,6 +19,8 @@
 #include "vtkDataObject.h"
 #include "vtkObjectFactory.h"
 
+#include "vtkStdString.h"
+
 vtkCxxRevisionMacro(vtkPlot, "$Revision$");
 
 //-----------------------------------------------------------------------------
@@ -56,6 +58,13 @@ void vtkPlot::SetInput(vtkTable *table)
 void vtkPlot::SetInput(vtkTable *table, const char *xColumn,
                        const char *yColumn)
 {
+  if (!xColumn || !yColumn)
+    {
+    vtkErrorMacro(<< "Called with null arguments for X or Y column.")
+    }
+  vtkDebugMacro(<< "Setting input, X column = \"" << vtkstd::string(xColumn)
+                << "\", " << "Y column = \"" << vtkstd::string(yColumn) << "\"");
+
   this->vtkContextMapper2D::SetInput(table);
   this->SetInput(table);
   this->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_ROWS,
@@ -76,7 +85,8 @@ void vtkPlot::SetInput(vtkTable *table, vtkIdType xColumn,
 //-----------------------------------------------------------------------------
 void vtkPlot::SetInputArray(int index, const char *name)
 {
-  this->SetInputArrayToProcess(index, 0, 0, vtkDataObject::FIELD_ASSOCIATION_ROWS,
+  this->SetInputArrayToProcess(index, 0, 0,
+                               vtkDataObject::FIELD_ASSOCIATION_ROWS,
                                name);
 }
 
