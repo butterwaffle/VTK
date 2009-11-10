@@ -39,6 +39,7 @@ class vtkPoints2D;
 class vtkContextDevice2D;
 class vtkPen;
 class vtkBrush;
+class vtkImageData;
 
 class VTK_CHARTS_EXPORT vtkContext2D : public vtkObject
 {
@@ -150,6 +151,10 @@ public:
   // Get/set the text properties.
   void SetTextProp(vtkTextProperty *prop);
   vtkGetObjectMacro(TextProp, vtkTextProperty);
+
+  // Description:
+  // Experimentation with point sprites
+  unsigned int AddPointSprite(vtkImageData *image);
 
 //BTX
 protected:

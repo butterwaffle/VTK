@@ -22,6 +22,7 @@
 #include "vtkTable.h"
 #include "vtkFloatArray.h"
 #include "vtkDoubleArray.h"
+#include "vtkIdTypeArray.h"
 #include "vtkExecutive.h"
 #include "vtkTimeStamp.h"
 #include "vtkInformation.h"
@@ -68,6 +69,29 @@ bool vtkPlotLine::Paint(vtkContext2D *painter)
     this->UpdateTableCache(table);
     }
 
+  // Now add some decorations for our selected points...
+  if (this->Selection)
+    {
+    vtkDebugMacro(<<"Selection set " << this->Selection->GetNumberOfTuples());
+    for (int i = 0; i < this->Selection->GetNumberOfTuples(); ++i)
+      {
+      painter->GetPen()->SetWidth(this->Width*15.0);
+      painter->GetPen()->SetColor(0, 0, 255, 255);
+      vtkIdType id = 0;
+      this->Selection->GetTupleValue(i, &id);
+      if (id < this->Points->GetNumberOfPoints())
+        {
+        double *point = this->Points->GetPoint(id);
+        painter->DrawPoint(point[0], point[1]);
+        }
+      }
+    }
+  else
+    {
+    vtkDebugMacro("No selectionn set.");
+    }
+
+  // Now to plot the points
   if (this->Points)
     {
     painter->GetPen()->SetColor(this->r, this->g, this->b, this->a);
@@ -79,11 +103,11 @@ bool vtkPlotLine::Paint(vtkContext2D *painter)
       }
     if (this->DrawPoints)
       {
-      painter->GetPen()->SetWidth(this->Width*3.0);
+      painter->GetPen()->SetWidth(this->Width*10.0);
       painter->DrawPoints(this->Points);
       }
-
     }
+
   return true;
 }
 

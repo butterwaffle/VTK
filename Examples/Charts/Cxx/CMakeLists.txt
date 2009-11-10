@@ -22,5 +22,14 @@ IF(VTK_USE_QVTK)
     vtkRendering
     vtkCharts
   )
+
+  ADD_EXECUTABLE(QChartCSV QChartCSV.cxx)
+    TARGET_LINK_LIBRARIES(QChartCSV
+      QVTK
+      ${QT_LIBRARIES}
+      vtkRendering
+      vtkCharts
+      vtkInfovis
+    )
 ENDIF(VTK_USE_QVTK)
 

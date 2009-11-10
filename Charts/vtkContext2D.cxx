@@ -324,6 +324,12 @@ void vtkContext2D::DrawText(int x, int y, const char *string)
 }
 
 //-----------------------------------------------------------------------------
+unsigned int vtkContext2D::AddPointSprite(vtkImageData *image)
+{
+  this->Device->AddPointSprite(image);
+}
+
+//-----------------------------------------------------------------------------
 inline void vtkContext2D::ApplyPen()
 {
   this->Device->SetColor(this->Pen->GetColor());

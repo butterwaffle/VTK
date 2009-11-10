@@ -24,6 +24,7 @@
 #include "vtkContextMapper2D.h"
 
 class vtkVariant;
+class vtkIdTypeArray;
 
 class VTK_CHARTS_EXPORT vtkPlot : public vtkContextMapper2D
 {
@@ -60,6 +61,8 @@ public:
   // column in the vtkTable.
   virtual void SetInputArray(int index, const char *name);
 
+  virtual void SetSelection(vtkIdTypeArray *id);
+
 //BTX
   // Description:
   // A General setter/getter that should be overridden. It can silently drop
@@ -79,6 +82,9 @@ protected:
 
   // Plot label, used by legend
   char *Label;
+
+  // Selected indices for the table the plot is rendering
+  vtkIdTypeArray *Selection;
 
 private:
   vtkPlot(const vtkPlot &); // Not implemented.

@@ -26,6 +26,8 @@
 class vtkContext2D;
 class vtkPlot;
 
+class vtkInteractorStyle;
+class vtkAnnotationLink;
 class vtkTable;
 
 class VTK_CHARTS_EXPORT vtkChart : public vtkObject
@@ -55,22 +57,48 @@ public:
   virtual vtkIdType GetNumberPlots();
 
   // Description:
+  // Set/Get the vtkAnnotationLink for the chart.
+  virtual void SetAnnotationLink(vtkAnnotationLink *link);
+  vtkGetObjectMacro(AnnotationLink, vtkAnnotationLink);
+
+  // Description:
   // This function allows you to set the overall dimensions of the chart.
   // An int pointer of length 6 is expected with the dimensions in the order of
   // width, height, left border, bottom border, right border, top border in
   // pixels of the device.
   vtkSetVector6Macro(Geometry, int);
 
+  // Description:
+  // Add the chart as an observer on the supplied interaction style.
+  void AddInteractorStyle(vtkInteractorStyle *interactor);
+
 //BTX
 protected:
   vtkChart();
   ~vtkChart();
+
+  // Description:
+  // Called to process events.
+  virtual void ProcessEvents(vtkObject* caller, unsigned long eventId,
+                             void* callData);
+
+  // Description:
+  // Process a rubber band selection event.
+  virtual void ProcessSelectionEvent(vtkObject* caller, void* callData);
+
+  vtkAnnotationLink *AnnotationLink;
 
   // Store the chart dimensions packed into a vtkPoints2D
   // [0] = width, height of chart in screen coordinates
   // [1] = left border, bottom border (roughly - origin of the chart
   // [2] = right border, top border (offset from top right most point)
   int Geometry[6];
+
+  // Description:
+  // The command object for the charts.
+  class Command;
+  friend class Command;
+  Command *Observer;
 
 private:
   vtkChart(const vtkChart &); // Not implemented.

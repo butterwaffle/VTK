@@ -30,6 +30,7 @@
 class vtkContext2D;
 class vtkChart;
 class vtkProperty2D;
+class vtkInteractorStyle;
 
 class VTK_CHARTS_EXPORT vtkChartActor : public vtkProp
 {

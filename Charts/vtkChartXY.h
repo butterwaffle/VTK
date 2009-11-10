@@ -68,6 +68,10 @@ protected:
   vtkChartXY();
   ~vtkChartXY();
 
+  // Description:
+  // Process a rubber band selection event.
+  virtual void ProcessSelectionEvent(vtkObject* caller, void* callData);
+
   // The X and Y axes for the chart
   vtkAxis *XAxis, *YAxis;
   vtkPlotGrid *Grid;

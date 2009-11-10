@@ -27,7 +27,8 @@ class vtkWindow;
 class vtkViewport;
 class vtkRenderer;
 class vtkLabelRenderStrategy;
-class vtk2DPainter;
+class vtkOpenGLRenderWindow;
+class vtkOpenGLExtensionManager;
 
 class VTK_CHARTS_EXPORT vtkOpenGLContextDevice2D : public vtkContextDevice2D
 {
@@ -59,6 +60,10 @@ public:
   virtual void DrawText(float *point, vtkTextProperty *tprop,
                         const vtkStdString &string);
 //ETX
+
+  // Description:
+  // Experimentation with point sprites
+  virtual unsigned int AddPointSprite(vtkImageData *image);
 
   // Description:
   // Set the color for the device using unsigned char of length 4, RGBA.
@@ -109,6 +114,12 @@ protected:
 
   // Store whether any text has been drawn to control Start frame end frame
   bool IsTextDrawn;
+
+  // Private data pointer of the class
+  class Private;
+  Private *Storage;
+
+  bool LoadExtensions(vtkOpenGLExtensionManager *m);
 
 private:
   vtkOpenGLContextDevice2D(const vtkOpenGLContextDevice2D &); // Not implemented.

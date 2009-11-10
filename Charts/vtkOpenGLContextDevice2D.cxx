@@ -33,7 +33,14 @@
 #include "vtkWindow.h"
 #include "vtkgluPickMatrix.h"
 
+#include "vtkTexture.h"
+#include "vtkImageData.h"
+
 #include "vtkRenderer.h"
+#include "vtkOpenGLRenderer.h"
+#include "vtkOpenGLRenderWindow.h"
+#include "vtkOpenGLExtensionManager.h"
+#include "vtkgl.h"
 
 #ifdef VTK_USE_QT
   #include "vtkQtLabelRenderStrategy.h"
@@ -43,6 +50,19 @@
 
 #include "vtkObjectFactory.h"
 
+//-----------------------------------------------------------------------------
+class vtkOpenGLContextDevice2D::Private
+{
+public:
+  Private()
+  {
+    this->texture = 0;
+  }
+
+  vtkTexture *texture;
+};
+
+//-----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkOpenGLContextDevice2D, "$Revision$");
 vtkStandardNewMacro(vtkOpenGLContextDevice2D);
 
@@ -56,6 +76,7 @@ vtkOpenGLContextDevice2D::vtkOpenGLContextDevice2D()
 #else
   this->TextRenderer = vtkFreeTypeLabelRenderStrategy::New();
 #endif
+  this->Storage = new vtkOpenGLContextDevice2D::Private;
 }
 
 //-----------------------------------------------------------------------------
@@ -63,6 +84,8 @@ vtkOpenGLContextDevice2D::~vtkOpenGLContextDevice2D()
 {
   this->TextRenderer->Delete();
   this->TextRenderer = 0;
+  delete this->Storage;
+  this->Storage = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -93,6 +116,17 @@ void vtkOpenGLContextDevice2D::Begin(vtkViewport* viewport)
   this->Renderer = vtkRenderer::SafeDownCast(viewport);
   this->TextRenderer->SetRenderer(this->Renderer);
   this->IsTextDrawn = false;
+
+  vtkOpenGLRenderer *gl = vtkOpenGLRenderer::SafeDownCast(viewport);
+  if (gl)
+    {
+    vtkOpenGLRenderWindow *glWin = vtkOpenGLRenderWindow::SafeDownCast(gl->GetRenderWindow());
+    if (glWin)
+      {
+      this->LoadExtensions(glWin->GetExtensionManager());
+      }
+    }
+
   this->Modified();
 }
 
@@ -137,10 +171,26 @@ void vtkOpenGLContextDevice2D::DrawPoints(float *f, int n)
 {
   if (f && n > 0)
     {
+    if (this->Storage->texture)
+      {
+      this->Storage->texture->Render(this->Renderer);
+      glEnable(vtkgl::POINT_SPRITE);
+      glTexEnvi(vtkgl::POINT_SPRITE, vtkgl::COORD_REPLACE, GL_TRUE);
+      }
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(2, GL_FLOAT, 0, &f[0]);
     glDrawArrays(GL_POINTS, 0, n);
     glDisableClientState(GL_VERTEX_ARRAY);
+
+    if (this->Storage->texture)
+      {
+      glTexEnvi(vtkgl::POINT_SPRITE, vtkgl::COORD_REPLACE, GL_FALSE);
+      glDisable(vtkgl::POINT_SPRITE);
+      this->Storage->texture->PostRender(this->Renderer);
+      glBindTexture(GL_TEXTURE_2D, 0);
+      glEnable(GL_TEXTURE_2D);
+      }
     }
   else
     {
@@ -176,6 +226,13 @@ void vtkOpenGLContextDevice2D::DrawText(float *point, vtkTextProperty *prop,
 
   int p[] = { point[0], point[1] };
   this->TextRenderer->RenderLabel(&p[0], prop, string);
+}
+
+//-----------------------------------------------------------------------------
+unsigned int vtkOpenGLContextDevice2D::AddPointSprite(vtkImageData *image)
+{
+  this->Storage->texture = vtkTexture::New();
+  this->Storage->texture->SetInput(image);
 }
 
 //-----------------------------------------------------------------------------
@@ -239,6 +296,16 @@ void vtkOpenGLContextDevice2D::SetClipping(int *x)
 void vtkOpenGLContextDevice2D::DisableClipping()
 {
   glDisable(GL_SCISSOR_TEST);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkOpenGLContextDevice2D::LoadExtensions(vtkOpenGLExtensionManager *m)
+{
+  bool supportsGL15=m->ExtensionSupported("GL_VERSION_1_5");
+  if(supportsGL15)
+    {
+    m->LoadExtension("GL_VERSION_1_5");
+    }
 }
 
 //-----------------------------------------------------------------------------

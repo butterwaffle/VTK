@@ -32,6 +32,7 @@ class vtkStdString;
 class vtkTextProperty;
 class vtk2DPainter;
 class vtkPoints2D;
+class vtkImageData;
 
 class VTK_CHARTS_EXPORT vtkContextDevice2D : public vtkObject
 {
@@ -59,6 +60,10 @@ public:
   virtual void DrawText(float *point, vtkTextProperty *tprop,
                         const vtkStdString &string) = 0;
 //ETX
+
+  // Description:
+  // Experimentation with point sprites
+  virtual unsigned int AddPointSprite(vtkImageData *image) {;}
 
   // Description:
   // Set the color for the device using unsigned char of length 4, RGBA.

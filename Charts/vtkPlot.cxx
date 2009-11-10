@@ -17,11 +17,13 @@
 
 #include "vtkTable.h"
 #include "vtkDataObject.h"
+#include "vtkIdTypeArray.h"
 #include "vtkObjectFactory.h"
 
 #include "vtkStdString.h"
 
 vtkCxxRevisionMacro(vtkPlot, "$Revision$");
+vtkCxxSetObjectMacro(vtkPlot, Selection, vtkIdTypeArray);
 
 //-----------------------------------------------------------------------------
 vtkPlot::vtkPlot()
@@ -31,6 +33,7 @@ vtkPlot::vtkPlot()
   this->b = 0;
   this->a = 0;
   this->Width = 1.0;
+  this->Selection = NULL;
 }
 
 //-----------------------------------------------------------------------------

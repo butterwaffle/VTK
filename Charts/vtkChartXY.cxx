@@ -31,6 +31,11 @@
 #include "vtkAbstractArray.h"
 #include "vtkFloatArray.h"
 #include "vtkIntArray.h"
+#include "vtkIdTypeArray.h"
+
+#include "vtkAnnotationLink.h"
+#include "vtkSelection.h"
+#include "vtkSelectionNode.h"
 
 #include "vtkObjectFactory.h"
 
@@ -62,6 +67,16 @@ vtkChartXY::vtkChartXY()
   this->Grid->SetXAxis(this->XAxis);
   this->Grid->SetYAxis(this->YAxis);
   this->ChartPrivate = new vtkChartXYPrivate;
+
+  // Set up the x and y axes - should be congigured based on data
+  this->XAxis->SetMinimum(0.0);
+  this->XAxis->SetMaximum(7.0);
+  this->XAxis->SetNumberOfTicks(8);
+  this->XAxis->SetLabel("X Axis");
+  this->YAxis->SetMinimum(0.0);
+  this->YAxis->SetMaximum(1.0);
+  this->YAxis->SetNumberOfTicks(5);
+  this->YAxis->SetLabel("Y Axis");
 }
 
 //-----------------------------------------------------------------------------
@@ -100,19 +115,25 @@ void vtkChartXY::SetGeometry(int *p)
 bool vtkChartXY::Paint(vtkContext2D *painter)
 {
   // This is where everything should be drawn, or dispatched to other methods.
-  vtkDebugMacro(<< "Paint event called in vtkChartXY.");
+  vtkDebugMacro(<< "Paint event called.");
+
+  vtkIdTypeArray *idArray = 0;
+  if (this->AnnotationLink)
+    {
+    this->AnnotationLink->Update();
+    vtkSelection *selection = vtkSelection::SafeDownCast(this->AnnotationLink->GetOutputDataObject(2));
+    if (selection->GetNumberOfNodes())
+      {
+      vtkSelectionNode *node = selection->GetNode(0);
+      idArray = vtkIdTypeArray::SafeDownCast(node->GetSelectionList());
+      }
+    }
+  else
+    {
+    vtkDebugMacro("No annotation link set.");
+    }
 
   // This method could be optimized if only certain regions needed painting.
-
-  // Set up the x and y axes - should be congigured based on data
-  this->XAxis->SetMinimum(0.0);
-  this->XAxis->SetMaximum(7.0);
-  this->XAxis->SetNumberOfTicks(8);
-  this->XAxis->SetLabel("X Axis");
-  this->YAxis->SetMinimum(0.0);
-  this->YAxis->SetMaximum(-1.0);
-  this->YAxis->SetNumberOfTicks(5);
-  this->YAxis->SetLabel("Y Axis");
 
   // Draw a hard wired grid right now - this should be configurable
   painter->GetPen()->SetColorF(0.8, 0.8, 0.8);
@@ -146,14 +167,15 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
   int clip[4];
   clip[0] = xOrigin;
   clip[1] = yOrigin;
-  clip[2] = this->Geometry[0] - this->Geometry[4];
-  clip[3] = this->Geometry[1] - this->Geometry[5];
+  clip[2] = this->Geometry[0] - this->Geometry[4] - this->Geometry[2];
+  clip[3] = this->Geometry[1] - this->Geometry[5] - this->Geometry[3];
   painter->GetDevice()->SetClipping(&clip[0]);
 
   // Now iterate through the plots
   int n = this->ChartPrivate->plots.size();
   for (int i = 0; i < n; ++i)
     {
+    this->ChartPrivate->plots[i]->SetSelection(idArray);
     this->ChartPrivate->plots[i]->Paint(painter);
     }
 
@@ -168,7 +190,7 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
   this->YAxis->Paint(painter);
 
   // And a semi-transparent rectangle
-  painter->GetBrush()->SetColorF(0.75, 0.0, 0.0, 0.65);
+/*  painter->GetBrush()->SetColorF(0.75, 0.0, 0.0, 0.65);
   painter->GetPen()->SetColor(0, 0, 0, 255);
   painter->DrawRect(70, 100, 50, 200);
   painter->DrawQuad(200, 100, 200, 120,
@@ -176,7 +198,7 @@ bool vtkChartXY::Paint(vtkContext2D *painter)
 
   painter->DrawEllipse(200, 200, 50, 50);
   painter->DrawEllipse(225, 200, 25, 100);
-
+*/
 }
 
 //-----------------------------------------------------------------------------
@@ -204,8 +226,73 @@ vtkPlot * vtkChartXY::AddPlot(vtkChart::Type type)
 //-----------------------------------------------------------------------------
 vtkIdType vtkChartXY::GetNumberPlots()
 {
-
+  return this->ChartPrivate->plots.size();
 }
+
+//-----------------------------------------------------------------------------
+void vtkChartXY::ProcessSelectionEvent(vtkObject* caller, void* callData)
+{
+  cout << "ProcessSelectionEvent called in XY! " << caller << "\t" << callData << endl;
+  unsigned int *rect = reinterpret_cast<unsigned int *>(callData);
+
+  // The origin of the plot area
+  float xOrigin = this->Geometry[2];
+  float yOrigin = this->Geometry[3];
+
+  // Get the scale for the plot area from the x and y axes
+  float *min = this->XAxis->GetPoint1();
+  float *max = this->XAxis->GetPoint2();
+  double xScale = (this->XAxis->GetMaximum() - this->XAxis->GetMinimum()) /
+                 (max[0] - min[0]);
+  min = this->YAxis->GetPoint1();
+  max = this->YAxis->GetPoint2();
+  double yScale = (this->YAxis->GetMaximum() - this->YAxis->GetMinimum()) /
+                 (max[1] - min[1]);
+
+  double matrix[3][3];
+  matrix[0][0] = xScale;
+  matrix[0][1] = 0;
+  matrix[0][2] = -1.0 * xOrigin*xScale;
+
+  matrix[1][0] = yScale;
+  matrix[1][1] = 0;
+  matrix[1][2] = -1.0 * yOrigin*yScale;
+
+  matrix[2][0] = 0;
+  matrix[2][1] = 0;
+  matrix[2][2] = 1;
+
+  double tRect[4];
+
+  tRect[0] = matrix[0][0]*rect[0] + matrix[0][2];
+  tRect[1] = matrix[1][0]*rect[1] + matrix[1][2];
+
+  tRect[2] = matrix[0][0]*rect[2] + matrix[0][2];
+  tRect[3] = matrix[1][0]*rect[3] + matrix[1][2];
+
+  // As an example - handle zooming using the rubber band...
+  if (tRect[0] > tRect[2])
+    {
+    double tmp = tRect[0];
+    tRect[0] = tRect[2];
+    tRect[2] = tmp;
+    }
+  if (tRect[1] > tRect[3])
+    {
+    double tmp = tRect[1];
+    tRect[1] = tRect[3];
+    tRect[3] = tmp;
+    }
+  // Now set the values of the axes
+  this->XAxis->SetMinimum(tRect[0]);
+  this->XAxis->SetMaximum(tRect[2]);
+  this->YAxis->SetMinimum(tRect[1]);
+  this->YAxis->SetMaximum(tRect[3]);
+  // Now re-render the chart
+
+  vtkInteractorStyle *interactor = reinterpret_cast<vtkInteractorStyle *>(caller);
+}
+
 
 //-----------------------------------------------------------------------------
 void vtkChartXY::PrintSelf(ostream &os, vtkIndent indent)
