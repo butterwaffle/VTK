@@ -34,7 +34,8 @@ vtkBlockItem::vtkBlockItem()
 {
   this->Label = NULL;
   this->MouseOver = false;
-  this->LeftButtonPressed = false;
+  this->MouseButtonPressed = -1;
+  this->scalarFunction = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -68,6 +69,12 @@ bool vtkBlockItem::Paint(vtkContext2D *painter)
   int x = this->Dimensions[0] + 0.5 * (this->Dimensions[2]-this->Dimensions[0]);
   int y = this->Dimensions[1] + 0.5 * (this->Dimensions[3]-this->Dimensions[1]);
 
+  if (this->scalarFunction)
+    {
+    // We have a function pointer - do something...
+    ;
+    }
+
   painter->DrawText(x, y, this->Label);
 }
 
@@ -96,7 +103,7 @@ bool vtkBlockItem::MouseEnterEvent(int x, int y)
 //-----------------------------------------------------------------------------
 bool vtkBlockItem::MouseMoveEvent(int x, int y)
 {
-  if (this->LeftButtonPressed)
+  if (this->MouseButtonPressed == 0)
     {
     int deltaX = x - this->LastPosition[0];
     int deltaY = y - this->LastPosition[1];
@@ -109,6 +116,33 @@ bool vtkBlockItem::MouseMoveEvent(int x, int y)
     this->Dimensions[2] += deltaX;
     this->Dimensions[3] += deltaY;
 
+    return true;
+    }
+  else if (this->MouseButtonPressed == 1)
+    {
+    int deltaX = x - this->LastPosition[0];
+    int deltaY = y - this->LastPosition[1];
+    this->LastPosition[0] = x;
+    this->LastPosition[1] = y;
+
+    // Move the block by this amount
+    this->Dimensions[0] += deltaX;
+    this->Dimensions[1] += deltaY;
+
+    return true;
+    }
+  else if (this->MouseButtonPressed == 2)
+    {
+    int deltaX = x - this->LastPosition[0];
+    int deltaY = y - this->LastPosition[1];
+    this->LastPosition[0] = x;
+    this->LastPosition[1] = y;
+
+    // Move the block by this amount
+    this->Dimensions[2] += deltaX;
+    this->Dimensions[3] += deltaY;
+
+    return true;
     }
   return false;
 }
@@ -121,19 +155,24 @@ bool vtkBlockItem::MouseLeaveEvent(int x, int y)
 }
 
 //-----------------------------------------------------------------------------
-bool vtkBlockItem::LeftMouseButtonPressEvent(int x, int y)
+bool vtkBlockItem::MouseButtonPressEvent(int button, int x, int y)
 {
-  this->LeftButtonPressed = true;
+  this->MouseButtonPressed = button;
   this->LastPosition[0] = x;
   this->LastPosition[1] = y;
   return true;
 }
 
 //-----------------------------------------------------------------------------
-bool vtkBlockItem::LeftMouseButtonReleaseEvent(int x, int y)
+bool vtkBlockItem::MouseButtonReleaseEvent(int button, int x, int y)
 {
-  this->LeftButtonPressed = false;
+  this->MouseButtonPressed = -1;
   return true;
+}
+
+void vtkBlockItem::SetScalarFunctor(double (*scalarFunction)(double, double))
+{
+  this->scalarFunction = scalarFunction;
 }
 
 //-----------------------------------------------------------------------------

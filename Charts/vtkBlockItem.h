@@ -56,17 +56,19 @@ public:
 
   // Description:
   // Left mouse button down event
-  virtual bool LeftMouseButtonPressEvent(int x, int y);
+  virtual bool MouseButtonPressEvent(int button, int x, int y);
 
   // Description:
   // Left mouse button up event
-  virtual bool LeftMouseButtonReleaseEvent(int x, int y);
+  virtual bool MouseButtonReleaseEvent(int button, int x, int y);
 
   vtkSetStringMacro(Label);
   vtkGetStringMacro(Label);
 
   vtkSetVector4Macro(Dimensions, int);
   vtkGetVector4Macro(Dimensions, int);
+
+  void SetScalarFunctor(double (*scalarFunction)(double, double));
 
 //BTX
 protected:
@@ -80,7 +82,10 @@ protected:
   char *Label;
 
   bool MouseOver;
-  bool LeftButtonPressed;
+  int MouseButtonPressed;
+
+  // Some function pointers to optionally do funky things...
+  double (*scalarFunction)(double, double);
 
 private:
   vtkBlockItem(const vtkBlockItem &); // Not implemented.

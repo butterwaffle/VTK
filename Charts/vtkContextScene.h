@@ -85,6 +85,10 @@ protected:
   virtual void MouseMoveEvent(int x, int y);
   virtual void LeftButtonPressEvent(int x, int y);
   virtual void LeftButtonReleaseEvent(int x, int y);
+  virtual void MiddleButtonPressEvent(int x, int y);
+  virtual void MiddleButtonReleaseEvent(int x, int y);
+  virtual void RightButtonPressEvent(int x, int y);
+  virtual void RightButtonReleaseEvent(int x, int y);
 
   vtkAnnotationLink *AnnotationLink;
 

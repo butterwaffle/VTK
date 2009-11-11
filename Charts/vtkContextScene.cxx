@@ -59,6 +59,18 @@ public:
         case vtkCommand::LeftButtonReleaseEvent :
           this->Target->LeftButtonReleaseEvent(x, y);
           break;
+        case vtkCommand::MiddleButtonPressEvent :
+          this->Target->MiddleButtonPressEvent(x, y);
+          break;
+        case vtkCommand::MiddleButtonReleaseEvent :
+          this->Target->MiddleButtonReleaseEvent(x, y);
+          break;
+        case vtkCommand::RightButtonPressEvent :
+          this->Target->RightButtonPressEvent(x, y);
+          break;
+        case vtkCommand::RightButtonReleaseEvent :
+          this->Target->RightButtonReleaseEvent(x, y);
+          break;
         case vtkCommand::SelectionChangedEvent :
           this->Target->ProcessSelectionEvent(caller, callData);
           break;
@@ -221,7 +233,7 @@ void vtkContextScene::LeftButtonPressEvent(int x, int y)
     {
     if (this->Storage->items[i]->Hit(x, y))
       {
-      if (this->Storage->items[i]->LeftMouseButtonPressEvent(x, y))
+      if (this->Storage->items[i]->MouseButtonPressEvent(0, x, y))
         {
         // The event was accepted - stop propagating
         this->Storage->itemMousePressCurrent = i;
@@ -236,7 +248,63 @@ void vtkContextScene::LeftButtonReleaseEvent(int x, int y)
 {
   if (this->Storage->itemMousePressCurrent >= 0)
     {
-    this->Storage->items[this->Storage->itemMousePressCurrent]->LeftMouseButtonReleaseEvent(x, y);
+    this->Storage->items[this->Storage->itemMousePressCurrent]->MouseButtonReleaseEvent(0, x, y);
+    this->Storage->itemMousePressCurrent = -1;
+    }
+}
+
+//-----------------------------------------------------------------------------
+void vtkContextScene::MiddleButtonPressEvent(int x, int y)
+{
+  unsigned int size = this->Storage->items.size();
+  for (unsigned int i = 0; i < size; ++i)
+    {
+    if (this->Storage->items[i]->Hit(x, y))
+      {
+      if (this->Storage->items[i]->MouseButtonPressEvent(1, x, y))
+        {
+        // The event was accepted - stop propagating
+        this->Storage->itemMousePressCurrent = i;
+        return;
+        }
+      }
+    }
+}
+
+//-----------------------------------------------------------------------------
+void vtkContextScene::MiddleButtonReleaseEvent(int x, int y)
+{
+  if (this->Storage->itemMousePressCurrent >= 0)
+    {
+    this->Storage->items[this->Storage->itemMousePressCurrent]->MouseButtonReleaseEvent(1, x, y);
+    this->Storage->itemMousePressCurrent = -1;
+    }
+}
+
+//-----------------------------------------------------------------------------
+void vtkContextScene::RightButtonPressEvent(int x, int y)
+{
+  unsigned int size = this->Storage->items.size();
+  for (unsigned int i = 0; i < size; ++i)
+    {
+    if (this->Storage->items[i]->Hit(x, y))
+      {
+      if (this->Storage->items[i]->MouseButtonPressEvent(2, x, y))
+        {
+        // The event was accepted - stop propagating
+        this->Storage->itemMousePressCurrent = i;
+        return;
+        }
+      }
+    }
+}
+
+//-----------------------------------------------------------------------------
+void vtkContextScene::RightButtonReleaseEvent(int x, int y)
+{
+  if (this->Storage->itemMousePressCurrent >= 0)
+    {
+    this->Storage->items[this->Storage->itemMousePressCurrent]->MouseButtonReleaseEvent(2, x, y);
     this->Storage->itemMousePressCurrent = -1;
     }
 }

@@ -54,11 +54,11 @@ public:
 
   // Description:
   // Left mouse button down event
-  virtual bool LeftMouseButtonPressEvent(int x, int y);
+  virtual bool MouseButtonPressEvent(int button, int x, int y);
 
   // Description:
   // Left mouse button up event
-  virtual bool LeftMouseButtonReleaseEvent(int x, int y);
+  virtual bool MouseButtonReleaseEvent(int button, int x, int y);
 
 //BTX
 protected:

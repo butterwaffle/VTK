@@ -61,13 +61,13 @@ bool vtkContextItem::MouseLeaveEvent(int x, int y)
 }
 
 //-----------------------------------------------------------------------------
-bool vtkContextItem::LeftMouseButtonPressEvent(int x, int y)
+bool vtkContextItem::MouseButtonPressEvent(int button, int x, int y)
 {
   return false;
 }
 
 //-----------------------------------------------------------------------------
-bool vtkContextItem::LeftMouseButtonReleaseEvent(int x, int y)
+bool vtkContextItem::MouseButtonReleaseEvent(int button, int x, int y)
 {
   return false;
 }
