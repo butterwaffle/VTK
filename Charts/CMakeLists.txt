@@ -16,12 +16,16 @@ SET(KIT_LIBS vtkIO vtkftgl
 SET(Kit_SRCS
   vtkChartActor.cxx
   vtkAxis.cxx
+  vtkBlockItem.cxx
   vtkBrush.cxx
   vtkChart.cxx
   vtkChartXY.cxx
   vtkContext2D.cxx
+  vtkContextActor.cxx
   vtkContextDevice2D.cxx
+  vtkContextItem.cxx
   vtkContextMapper2D.cxx
+  vtkContextScene.cxx
   vtkOpenGLContextDevice2D.cxx
   vtkPen.cxx
   vtkPlot.cxx
@@ -48,6 +52,7 @@ SET(Kit_SRCS
 SET_SOURCE_FILES_PROPERTIES(
   vtkChart
   vtkContextDevice2D
+  vtkContextItem
   vtkContextMapper2D
   vtkPlot
   vtkQtChart
