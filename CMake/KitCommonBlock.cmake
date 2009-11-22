@@ -7,7 +7,7 @@ VTK_CREATE_DESCRIPTOR(vtk${KIT}
                       KitDescriptor_SRCS
                       "${Kit_SRCS}")
 
-ADD_LIBRARY(vtk${KIT} ${Kit_SRCS} ${Kit_EXTRA_SRCS} ${KitInstantiator_SRCS} ${KitDescriptor_SRCS})
+ADD_LIBRARY(vtk${KIT} ${Kit_SRCS} ${Kit_EXTRA_SRCS} ${KitInstantiator_SRCS})
 SET(KIT_LIBRARY_TARGETS ${KIT_LIBRARY_TARGETS} vtk${KIT})
 
 # Allow the user to customize their build with some local options
