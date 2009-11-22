@@ -531,6 +531,16 @@ extern VTK_COMMON_EXPORT void vtkOutputWindowDisplayDebugText(const char*);
 //
 #define vtkNotUsed(x)
 
+#define vtkDescriptorMacro(className,superClassName,descriptors) \
+protected: \
+  static vtkClassDescriptor* ClassDescriptor; \
+public: \
+  virtual vtkClassDescriptor* GetClassDescriptor() \
+    { return className ::ClassDescriptor; }
+  
+#define vtkCxxDescriptorMacro(className) \
+vtkClassDescriptor* className ::ClassDescriptor = className ## _PrepareClassDescriptor()
+
 #define vtkWorldCoordinateMacro(name) \
 virtual vtkCoordinate *Get##name##Coordinate () \
 { \
