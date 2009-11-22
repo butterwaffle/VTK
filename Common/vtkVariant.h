@@ -281,6 +281,8 @@ public:
   unsigned int ToUnsignedInt(bool* valid = 0) const;
   long ToLong(bool* valid = 0) const;
   unsigned long ToUnsignedLong(bool* valid = 0) const;
+
+  friend struct vtkVariantConverter;
 #if defined(VTK_TYPE_USE___INT64)
   __int64 To__Int64(bool* valid = 0) const;
   unsigned __int64 ToUnsigned__Int64(bool* valid = 0) const;
@@ -423,5 +425,39 @@ struct VTK_COMMON_EXPORT vtkVariantStrictEquality
 public:
   bool operator()(const vtkVariant &s1, const vtkVariant &s2) const;
 };
+
+struct VTK_COMMON_EXPORT vtkVariantConverter
+{
+public:
+  vtkVariantConverter( vtkVariant src )
+    {
+    this->Source = src;
+    }
+  operator float() const { return this->Source.Data.Float; }
+  operator double() const { return this->Source.Data.Double; }
+  operator char() const { return this->Source.Data.Char; }
+  operator unsigned char() const { return this->Source.Data.UnsignedChar; }
+  operator signed char() const { return this->Source.Data.SignedChar; }
+  operator short() const { return this->Source.Data.Short; }
+  operator unsigned short() const { return this->Source.Data.UnsignedShort; }
+  operator int() const { return this->Source.Data.Int; }
+  operator unsigned int() const { return this->Source.Data.UnsignedInt; }
+  operator long() const { return this->Source.Data.Long; }
+  operator unsigned long() const { return this->Source.Data.UnsignedLong; }
+  operator vtkStdString() const { return *this->Source.Data.String; }
+  operator vtkUnicodeString() const { return *this->Source.Data.UnicodeString; }
+  operator vtkObjectBase*() const { return this->Source.Data.VTKObject; }
+#if defined(VTK_TYPE_USE___INT64)
+  operator __int64() const { return this->Source.Data.__Int64; }
+  operator unsigned __int64() const { return this->Source.Data.Unsigned__Int64; }
+#endif
+#if defined(VTK_TYPE_USE_LONG_LONG)
+  operator long long() const { return this->Source.Data.LongLong; }
+  operator unsigned long long() const { return this->Source.Data.UnsignedLongLong; }
+#endif
+
+  vtkVariant Source;
+};
+
 
 #endif
