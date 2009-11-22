@@ -99,6 +99,16 @@ int readDescriptorArg( FILE* hdr, vtkStdString& argOut )
   return reason;
 }
 
+vtkstd::string trimWhitespace( vtkstd::string& orig )
+{
+  vtksys::RegularExpression trimRe( "[ \n]*([^ \n]+)[ \n]*" );
+  if ( trimRe.find( orig ) )
+    {
+    return trimRe.match( 1 );
+    }
+  return vtkstd::string();
+}
+
 // Remove empty arguments as well as trim whitespace from start and end of non-empty strings.
 vtkstd::vector<vtkstd::string> cleanArgs( vtkstd::vector<vtkstd::string>& argsIn )
 {
@@ -125,9 +135,21 @@ void writeClassDescriptor(
     "\n"
     "static vtkClassDescriptor* %s_PrepareClassDescriptor()\n"
     "{\n"
-    "  vtkClassDescriptor* cdesc = vtkClassDescriptor::RegisterClass( \"%s\", vtkObject::GetClassDescriptor( \"%s\" ) );\n"
-    "  vtkMemberDescriptor* mdesc;\n",
-    classname, classname, superclassname );
+    "  vtkClassDescriptor* cdesc = vtkClassDescriptor::RegisterClass( \"%s\", ",
+    classname, classname );
+  if ( superclassname && strlen( superclassname ) )
+    {
+    fprintf( dsc,
+      "%s::CollectClassDescriptor() );\n"
+      "  vtkMemberDescriptor* mdesc;\n",
+      superclassname );
+    }
+  else
+    {
+    fprintf( dsc,
+      "0 );\n"
+      "  vtkMemberDescriptor* mdesc;\n" );
+    }
 
   // II. Add member descriptors
   vtkstd::vector<vtkstd::vector<vtkstd::string> >::iterator it;
@@ -229,6 +251,7 @@ int main( int argc, char* argv[] )
     vtkStdString superclassname;
     if ( readNameArg( hdr, classname ) && readNameArg( hdr, superclassname ) )
       {
+      superclassname = trimWhitespace( superclassname );
       printf( "%s (%s)\n", classname.c_str(), superclassname.c_str() );
       vtkStdString arg;
       // read as long as the descriptor terminator is ';'... we might have more descriptors

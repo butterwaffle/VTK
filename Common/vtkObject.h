@@ -53,7 +53,7 @@ class vtkObjectP;
 class VTK_COMMON_EXPORT vtkObject : public vtkObjectBase
 {
 public:
-  vtkDescriptorMacro(vtkObject,vtkObjectBase,
+  vtkDescriptorMacro(vtkObject,,
     Debug RW VTK_UNSIGNED_CHAR BOOLEAN ARCHIVE;
     MTime RO VTK_UNSIGNED_LONG;
   );
