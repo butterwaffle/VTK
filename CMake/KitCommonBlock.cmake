@@ -3,8 +3,11 @@ VTK_MAKE_INSTANTIATOR3(vtk${KIT}Instantiator KitInstantiator_SRCS
                        "${Kit_SRCS}"
                        VTK_${UKIT}_EXPORT
                        ${VTK_BINARY_DIR} "")
+VTK_CREATE_DESCRIPTOR(vtk${KIT}
+                      KitDescriptor_SRCS
+                      "${Kit_SRCS}")
 
-ADD_LIBRARY(vtk${KIT} ${Kit_SRCS} ${Kit_EXTRA_SRCS} ${KitInstantiator_SRCS})
+ADD_LIBRARY(vtk${KIT} ${Kit_SRCS} ${Kit_EXTRA_SRCS} ${KitInstantiator_SRCS} ${KitDescriptor_SRCS})
 SET(KIT_LIBRARY_TARGETS ${KIT_LIBRARY_TARGETS} vtk${KIT})
 
 # Allow the user to customize their build with some local options

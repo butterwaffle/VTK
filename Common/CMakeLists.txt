@@ -35,6 +35,7 @@ vtkBoxMuellerRandomSequence.cxx
 vtkByteSwap.cxx
 vtkCallbackCommand.cxx
 vtkCharArray.cxx
+vtkClassDescriptor.cxx
 vtkClientSocket.cxx
 vtkCollection.cxx
 vtkCollectionIterator.cxx
@@ -112,6 +113,7 @@ vtkMath.cxx
 vtkMatrix4x4.cxx
 vtkMatrixToHomogeneousTransform.cxx
 vtkMatrixToLinearTransform.cxx
+vtkMemberDescriptor.cxx
 vtkMinimalStandardRandomSequence.cxx
 vtkMultiThreader.cxx
 vtkMutexLock.cxx
@@ -310,6 +312,7 @@ vtkArrayIterator
 vtkArrayIteratorTemplate
 vtkAbstractTransform
 vtkCallbackCommand
+vtkClassDescriptor
 vtkCommand
 vtkCommonInformationKeyManager
 vtkDataArray
@@ -339,6 +342,7 @@ vtkInformationStringVectorKey
 vtkInformationUnsignedLongKey
 vtkInitialValueProblemSolver
 vtkLinearTransform
+vtkMemberDescriptor
 vtkObjectBase
 vtkObjectFactory
 vtkOldStyleCallbackCommand
@@ -359,6 +363,7 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkArrayIteratorTemplate.txx
   vtkBoundingBox.cxx
   vtkCallbackCommand.cxx
+  vtkClassDescriptor
   vtkCommand.cxx
   vtkCommonInformationKeyManager.cxx
   vtkDebugLeaksManager.cxx
@@ -369,6 +374,7 @@ SET_SOURCE_FILES_PROPERTIES(
   vtkIOStream.cxx
   vtkIndent.cxx
   vtkLargeInteger.cxx
+  vtkMemberDescriptor
   vtkOStrStreamWrapper.cxx
   vtkOStreamWrapper.cxx
   vtkOldStyleCallbackCommand.cxx

@@ -13,19 +13,28 @@
 
 =========================================================================*/
 #include "vtkObject.h"
+#include "vtkObjectDescriptor.cxx"
 
 #include "vtkCommand.h"
 #include "vtkDebugLeaks.h"
 #include "vtkGarbageCollector.h"
+#include "vtkMemberDescriptor.h"
 #include "vtkTimeStamp.h"
 
 #include <vtkstd/map>
 
+vtkCxxDescriptorMacro(vtkObject);
 vtkCxxRevisionMacro(vtkObject, "$Revision$");
 
 // Initialize static member that controls warning display
 static int vtkObjectGlobalWarningDisplay = 1;
 
+// Initialize static members for storing class descriptors.
+vtkObjectP* vtkObject::ClassInternals = 0;
+
+class vtkObjectP : public vtkstd::map<vtkStdString,vtkClassDescriptor*>
+{
+};
 
 //----------------------------------------------------------------------------
 // avoid dll boundary problems
@@ -884,3 +893,62 @@ void vtkObject::UnRegisterInternal(vtkObjectBase* o, int check)
   // Decrement the reference count.
   this->Superclass::UnRegisterInternal(o, check);
 }
+
+//----------------------------------------------------------------------------
+vtkClassDescriptor* vtkObject::GetClassDescriptor( const char* className )
+{
+  if ( ! vtkObject::ClassInternals )
+    {
+    vtkObject::ClassInternals = new vtkObjectP;
+    atexit( vtkObject::CleanupClassDescriptors );
+    }
+  vtkstd::map<vtkStdString,vtkClassDescriptor*>::iterator it = vtkObject::ClassInternals->find( className );
+  if ( it == vtkObject::ClassInternals->end() )
+    {
+    return 0;
+    }
+  return it->second;
+}
+
+void vtkObject::CleanupClassDescriptors()
+{
+  if ( vtkObject::ClassInternals )
+    {
+    delete vtkObject::ClassInternals;
+    vtkObject::ClassInternals = 0;
+    }
+}
+
+int vtkObject::GetNumberOfDescriptors()
+{
+  return this->GetClassDescriptor()->GetNumberOfMembers();
+}
+
+vtkMemberDescriptor* vtkObject::GetDescriptor( int descriptorIdx )
+{
+  return this->GetClassDescriptor()->GetMemberDescriptor( descriptorIdx );
+}
+
+vtkVariant vtkObject::GetDescriptorValue( vtkMemberDescriptor* descriptor )
+{
+  return descriptor->GetValue( this );
+}
+
+vtkVariant vtkObject::GetDescriptorValue( const char* descriptorName )
+{
+  return this->GetClassDescriptor()->GetMemberDescriptor( descriptorName )->GetValue( this );
+}
+
+bool vtkObject::SetDescriptorValue( vtkMemberDescriptor* descriptor, vtkVariant value )
+{
+  descriptor->SetValue( this, value );
+  return true; // FIXME: SetMacro should return true/false based on whether the value changed.
+}
+
+bool vtkObject::SetDescriptorValue( const char* descriptorName, vtkVariant value )
+{
+  this->GetClassDescriptor()->GetMemberDescriptor( descriptorName )->SetValue( this, value );
+  return true; // FIXME: SetMacro should return true/false based on whether the value changed.
+}
+
+

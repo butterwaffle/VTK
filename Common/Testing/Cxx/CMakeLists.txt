@@ -10,6 +10,7 @@ CREATE_TEST_SOURCELIST(Tests ${KIT}CxxTests.cxx
   TestAmoebaMinimizer.cxx
   TestArrayLookup.cxx
   TestConditionVariable.cxx
+  TestDescriptor.cxx
   TestGarbageCollector.cxx
   TestDataArray.cxx
   TestDirectory.cxx

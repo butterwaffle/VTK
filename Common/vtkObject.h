@@ -40,14 +40,23 @@
 
 #include "vtkObjectBase.h"
 #include "vtkSetGet.h"
+#include "vtkStdString.h"
 #include "vtkTimeStamp.h"
+#include "vtkVariant.h"
 
 class vtkSubjectHelper;
+class vtkClassDescriptor;
 class vtkCommand;
+class vtkMemberDescriptor;
+class vtkObjectP;
 
 class VTK_COMMON_EXPORT vtkObject : public vtkObjectBase
 {
 public:
+  vtkDescriptorMacro(vtkObject,vtkObjectBase,
+    Debug RW VTK_UNSIGNED_CHAR BOOLEAN ARCHIVE;
+    MTime RO VTK_UNSIGNED_LONG;
+  );
   vtkTypeRevisionMacro(vtkObject,vtkObjectBase);
 
   // Description:
@@ -160,7 +169,30 @@ public:
   //ETX
   int InvokeEvent(unsigned long event) { return this->InvokeEvent(event, NULL); };
   int InvokeEvent(const char *event) { return this->InvokeEvent(event, NULL); };
-  
+
+  /**\brief Object attribute API.
+    * The functions in this portion of the vtkObject interface support
+    * programmatic access to member variables.
+    */
+  //@{
+  /// Return an object describing attributes of a class.
+  static vtkClassDescriptor* GetClassDescriptor( const char* className );
+
+  static void CleanupClassDescriptors();
+
+  //BTX
+  // Description:
+  // These functions provide access to member descriptors in a way that is wrappable, or at least
+  // will be once vtkVariant routines are wrappable.
+  virtual int GetNumberOfDescriptors();
+  virtual vtkMemberDescriptor* GetDescriptor( int descriptorIdx );
+  virtual vtkVariant GetDescriptorValue( vtkMemberDescriptor* descriptorIdx );
+  virtual vtkVariant GetDescriptorValue( const char* descriptorName );
+  virtual bool SetDescriptorValue( vtkMemberDescriptor* descriptorIdx, vtkVariant value );
+  virtual bool SetDescriptorValue( const char* descriptorName, vtkVariant value );
+  //ETX
+  //@}
+
 protected:
   vtkObject(); 
   virtual ~vtkObject(); 
@@ -169,9 +201,10 @@ protected:
   virtual void RegisterInternal(vtkObjectBase*, int check);
   virtual void UnRegisterInternal(vtkObjectBase*, int check);
 
-  unsigned char     Debug;      // Enable debug messages
-  vtkTimeStamp      MTime;      // Keep track of modification time
-  vtkSubjectHelper *SubjectHelper; // List of observers on this object
+  unsigned char      Debug;      // Enable debug messages
+  vtkTimeStamp       MTime;      // Keep track of modification time
+  vtkSubjectHelper*  SubjectHelper; // List of observers on this object
+  static vtkObjectP* ClassInternals; // Map of vtkClassDescriptors for vtkObject and all its descendants
 
   // Description:
   // These methods allow a command to exclusively grab all events. (This

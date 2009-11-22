@@ -105,11 +105,29 @@ IF(CMAKE_CONFIGURATION_TYPES)
 ENDIF(CMAKE_CONFIGURATION_TYPES)
 
 #-----------------------------------------------------------------------------
+# Prepare for descriptor support
+
+IF(CMAKE_CROSSCOMPILING)
+  SET(VTK_CREATE_DESCRIPTOR_EXE "vtkCreateDescriptor")
+ELSE(CMAKE_CROSSCOMPILING)
+  ADD_EXECUTABLE( vtkCreateDescriptor vtkCreateDescriptor.cxx )
+  TARGET_LINK_LIBRARIES( vtkCreateDescriptor vtksys )
+  GET_TARGET_PROPERTY(VTK_CREATE_DESCRIPTOR_EXE vtkCreateDescriptor LOCATION)
+ENDIF(CMAKE_CROSSCOMPILING)
+
+# Save these in cache as other projects including VTK (such as ParaView) may
+# want to use these. 
+SET(VTK_CREATE_DESCRIPTOR_EXE 
+  "${VTK_CREATE_DESCRIPTOR_EXE}"
+  CACHE INTERNAL "Location of program to create descriptors from headers")
+
+#-----------------------------------------------------------------------------
 # Load some macros.
 INCLUDE(${VTK_CMAKE_DIR}/vtkDependentOption.cmake)
 INCLUDE(${VTK_CMAKE_DIR}/vtkThirdParty.cmake)
 INCLUDE(${VTK_CMAKE_DIR}/vtkExportKit.cmake)
 INCLUDE(${VTK_CMAKE_DIR}/vtkMakeInstantiator.cmake)
+INCLUDE(${VTK_CMAKE_DIR}/vtkCreateDescriptors.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CMakeExportBuildSettings.cmake)
 
 #-----------------------------------------------------------------------------
