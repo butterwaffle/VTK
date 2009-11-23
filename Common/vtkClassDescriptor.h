@@ -28,6 +28,7 @@
 #include <vtkstd/vector>
 
 class vtkMemberDescriptor;
+template< class C_, typename V_ > class vtkMemberDescriptorObjImpl;
 template< class C_, typename V_ > class vtkMemberDescriptorImpl;
 template< class C_, typename V_, int d_ > class vtkMemberDescriptorVectorImpl;
 class vtkClassDescriptorP;
@@ -39,6 +40,13 @@ public:
 
   vtkClassDescriptor();
   virtual ~vtkClassDescriptor();
+
+  template< class C_, typename V_ >
+  vtkMemberDescriptor* AddObjectMember(
+    vtkStdString name,
+    bool serializable,
+    typename vtkMemberDescriptorObjImpl<C_,V_>::GetMemberType gmeth,
+    typename vtkMemberDescriptorObjImpl<C_,V_>::SetMemberType smeth );
 
   template< class C_, typename V_ >
   vtkMemberDescriptor* AddMember(

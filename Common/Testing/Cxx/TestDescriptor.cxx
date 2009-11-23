@@ -16,7 +16,7 @@ static void vtkPrintMembers( vtkClassDescriptor* cdesc )
     vtkMemberDescriptor* mdesc = cdesc->GetMemberDescriptor( i );
     cout
       << "  " << mdesc->GetClassDescriptor()->GetName().c_str() << "::"
-      << mdesc->GetName().c_str() << ": "
+      << mdesc->GetName().c_str() << ":"
       << vtkImageScalarTypeNameMacro(mdesc->GetType()) << "[" << mdesc->GetNumberOfComponents() << "]\n";
     }
 }

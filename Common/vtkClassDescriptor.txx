@@ -29,6 +29,18 @@
 #include "vtkMemberDescriptor.txx"
 
 template< class C_, typename V_ >
+vtkMemberDescriptor* vtkClassDescriptor::AddObjectMember(
+  vtkStdString name, bool serializable,
+  typename vtkMemberDescriptorObjImpl<C_,V_>::GetMemberType gmeth,
+  typename vtkMemberDescriptorObjImpl<C_,V_>::SetMemberType smeth )
+{
+  vtkMemberDescriptor* mdesc = new vtkMemberDescriptorObjImpl<C_,V_>( name, serializable, gmeth, smeth );
+  mdesc->Class = this;
+  this->Descriptors.push_back( mdesc );
+  return mdesc;
+}
+
+template< class C_, typename V_ >
 vtkMemberDescriptor* vtkClassDescriptor::AddMember(
   vtkStdString name, bool serializable,
   typename vtkMemberDescriptorImpl<C_,V_>::GetMemberType gmeth,

@@ -401,6 +401,7 @@ void writeClassDescriptor(
     vtkstd::string memberAccess = *desc; ++ desc;
     vtkstd::string memberType = *desc; ++ desc;
     vtkstd::string memberTypeName;
+    vtkstd::string addMethod = "AddMember";
     if ( memberType == "VTK_VOID" ) memberTypeName = "void";
     else if ( memberType == "VTK_BIT" ) memberTypeName = "bit";
     else if ( memberType == "VTK_CHAR" ) memberTypeName = "char";
@@ -422,7 +423,7 @@ void writeClassDescriptor(
     else if ( memberType == "VTK_STRING" ) memberTypeName = "vtkStdString";
     else if ( memberType == "VTK_UNICODE_STRING" ) memberTypeName = "vtkUnicodeString";
     else if ( memberType == "VTK_VARIANT" ) memberTypeName = "vtkVariant";
-    else if ( memberType == "VTK_OBJECT" ) memberTypeName = "vtkObject*";
+    else if ( memberType == "VTK_OBJECT" ) { memberTypeName = "vtkObject"; addMethod = "AddObjectMember"; }
     else memberTypeName = "Undefined";
     int memberComponents = 1;
     if ( desc != it->end() && *desc == "[" )
@@ -466,6 +467,19 @@ void writeClassDescriptor(
       else if ( *desc == "DEFAULT" )
         {
         }
+      else if ( *desc == "SUBCLASS" )
+        {
+        ++ desc;
+        if ( desc != it->end() )
+          {
+          memberTypeName = *desc;
+          }
+        else
+          {
+          printf( "SUBCLASS must be followed by a class name\n" );
+          return ;
+          }
+        }
       else if ( *desc == "INVALID" )
         {
         }
@@ -488,7 +502,8 @@ void writeClassDescriptor(
       if ( memberComponents <= 1 )
         {
         fprintf( dsc,
-          "  mdesc = cdesc->AddMember<%s,%s>( \"%s\", %s, &%s::Get%s, &%s::Set%s );\n",
+          "  mdesc = cdesc->%s<%s,%s>( \"%s\", %s, &%s::Get%s, &%s::Set%s );\n",
+          addMethod.c_str(),
           classname, memberTypeName.c_str(),
           memberName.c_str(),
           memberSerial ? "true" : "false",
@@ -499,7 +514,8 @@ void writeClassDescriptor(
       else
         {
         fprintf( dsc,
-          "  mdesc = cdesc->AddMember<%s,%s,%d>( \"%s\", %s, &%s::Get%s, &%s::Set%s );\n",
+          "  mdesc = cdesc->%s<%s,%s,%d>( \"%s\", %s, &%s::Get%s, &%s::Set%s );\n",
+          addMethod.c_str(),
           classname, memberTypeName.c_str(), memberComponents,
           memberName.c_str(),
           memberSerial ? "true" : "false",
@@ -513,7 +529,8 @@ void writeClassDescriptor(
       if ( memberComponents <= 1 )
         {
         fprintf( dsc,
-          "  mdesc = cdesc->AddMember<%s,%s>( \"%s\", %s, &%s::Get%s, 0 );\n",
+          "  mdesc = cdesc->%s<%s,%s>( \"%s\", %s, &%s::Get%s, 0 );\n",
+          addMethod.c_str(),
           classname, memberTypeName.c_str(),
           memberName.c_str(),
           memberSerial ? "true" : "false",

@@ -38,7 +38,7 @@
 // A macro to get the name of a type
 #define vtkImageScalarTypeNameMacro(type) \
 (((type) == VTK_VOID) ? "void" : \
-(((type) == VTK_BIT) ? "bit" : \
+(((type) == VTK_BIT) ? "bool" : \
 (((type) == VTK_CHAR) ? "char" : \
 (((type) == VTK_SIGNED_CHAR) ? "signed char" : \
 (((type) == VTK_UNSIGNED_CHAR) ? "unsigned char" : \
@@ -54,12 +54,13 @@
 (((type) == VTK_UNSIGNED___INT64) ? "unsigned __int64" : \
 (((type) == VTK_FLOAT) ? "float" : \
 (((type) == VTK_DOUBLE) ? "double" : \
-(((type) == VTK_ID_TYPE) ? "idtype" : \
+(((type) == VTK_ID_TYPE) ? "vtkIdType" : \
 (((type) == VTK_STRING) ? "string" : \
-(((type) == VTK_UNICODE_STRING) ? "unicode string" : \
-(((type) == VTK_VARIANT) ? "variant" : \
-(((type) == VTK_OBJECT) ? "object" : \
-"Undefined"))))))))))))))))))))))
+(((type) == VTK_UNICODE_STRING) ? "vtkUnicodeString" : \
+(((type) == VTK_VARIANT) ? "vtkVariant" : \
+(((type) == VTK_OBJECT) ? "vtkObject" : \
+(((type) == VTK_OPAQUE) ? "void*" : \
+"Undefined")))))))))))))))))))))))
   
 //
 // Set built-in type.  Creates member Set"name"() (e.g., SetVisibility());

@@ -142,5 +142,50 @@ protected:
   GetMemberType GetMethod;
 };
 
+template< class C_, typename V_ >
+class VTK_COMMON_EXPORT vtkMemberDescriptorObjImpl : public vtkMemberDescriptor
+{
+public:
+  virtual int GetType()
+    {
+    return VTK_OBJECT;
+    }
+  virtual vtkVariant GetValue( vtkObject* cls )
+    {
+    return (static_cast<C_*>( cls )->*GetMethod)();
+    }
+  virtual vtkVariant GetValue( vtkObject* cls, int vtkNotUsed(component) )
+    {
+    return (static_cast<C_*>( cls )->*GetMethod)();
+    }
+  virtual void SetValue( vtkObject* cls, vtkVariant val )
+    {
+    V_* ptr = V_::SafeDownCast( val.ToVTKObject() );
+    (static_cast<C_*>( cls )->*SetMethod)( ptr );
+    }
+  virtual void SetValue( vtkObject* cls, int vtkNotUsed(component), vtkVariant val )
+    {
+    V_* ptr = V_::SafeDownCast( val.ToVTKObject() );
+    (static_cast<C_*>( cls )->*SetMethod)( ptr );
+    }
+protected:
+  friend class vtkClassDescriptor;
+  typedef void (C_::*SetMemberType)( V_* );
+  typedef V_* (C_::*GetMemberType)();
+
+  vtkMemberDescriptorObjImpl( vtkStdString name, bool serializable, GetMemberType gmeth, SetMemberType smeth )
+    : vtkMemberDescriptor( name, serializable )
+    {
+    // NB: C_::ClassDescriptor hasn't been set inside C_::PrepareDescriptor yet, so the next won't work:
+    // this->Class = C_::ClassDescriptor;
+    this->Class = 0;
+    this->SetMethod = smeth;
+    this->GetMethod = gmeth;
+    }
+
+  SetMemberType SetMethod;
+  GetMemberType GetMethod;
+};
+
 
 #endif // __vtkMemberDescriptor_txx
