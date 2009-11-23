@@ -64,6 +64,11 @@ Optional components of the member specification include
 * The `DEFAULT` keyword followed by a single value
   (or a space-separated tuple in square brackets for vector-valued members)
   indicating the member's initial value on construction.
+* For members of type `VTK_OBJECT`, the `SUBCLASS` keyword followed by
+  the name of a class indicates a constraint that the value must be a pointer
+  to an object the named subclass (or one of its descendants).
+* For members with read-write access, the `EPHEMERAL` keyword indicates that
+  the member should not be included in the serialization of any class instance.
 
 Note that for properties with the storage type VTK_VARIANT, any values specified
 using the optional keywords above are parsed like so:
@@ -81,12 +86,15 @@ Some examples include:
     Foober RW VTK_DOUBLE[3] MIN [ 0 0 0 ] MAX [ 1 1 1 ] DEFAULT [ 0 0 0 ] ARCHIVE;
     Goober RO VTK_UNICODE_STRING ENUM { 'Deadly Cold' 'Not So Hot' 'LP On Fire' };
     Hoober RW VTK_UNICODE_STRING[2] ENUM { [ 'a' 'b' ] [ 'p' 'q' ] [ 'x' 'y' ] };
+    Moober RW VTK_OBJECT SUBCLASS vtkPoints;
+    Poober RW VTK_VARIANT DEFAULT INVALID EPHEMERAL;
 
 ## To Do
 
 * Take care of destruction on program exit to make valgrind happy.
 * Fix `vtkObject::GetClassDescriptor( char* className )` since it may
   not work with changes required to work around lazy dynamic library loading.
+  (partially implemented)
 * Implement `MIN`, `MAX`, `ENUM`, and `DEFAULT` keywords and parsing of vector
   values.
 * Think about better (bulk, non-component-wise) access to vector members.

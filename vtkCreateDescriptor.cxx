@@ -317,6 +317,10 @@ int splitDescriptorArg( vtkStdString& specIn, vtkstd::vector<vtkStdString>& toke
       break;
       }
     }
+  if ( ! curToken.empty() )
+    {
+    tokensOut.push_back( curToken );
+    }
   return reason;
 }
 
@@ -439,11 +443,11 @@ void writeClassDescriptor(
     // II.b. Parse optional member specification tokens
     for ( ; desc != it->end(); ++ desc )
       {
-      if ( *desc == "ARCHIVE" )
-        { // The member is serializable. This only applies to members with RW access.
+      if ( *desc == "EPHEMERAL" )
+        { // The member is not serializable. This only applies to members with RW access.
         if ( memberAccess == "RW" )
           {
-          memberSerial = true;
+          memberSerial = false;
           }
         }
       else if ( *desc == "BOOLEAN" )
@@ -467,14 +471,16 @@ void writeClassDescriptor(
         }
       }
 
+    /*
     cout
       << "  " << memberName.c_str() << " (" << memberAccess.c_str() << ") "
       << memberTypeName.c_str() << "[" << memberComponents << "]";
-    if ( memberSerial )
-      cout << " ARCHIVE";
+    if ( memberAccess == "RW" && ! memberSerial )
+      cout << " EPHEMERAL";
     if ( memberBoolean )
       cout << " BOOLEAN";
     cout << "\n";
+    */
 
     // II.c. Create a new member descriptor from our parse results
     if ( memberAccess == "RW" )
@@ -554,7 +560,14 @@ int main( int argc, char* argv[] )
     if ( readNameArg( hdr, classname ) && readNameArg( hdr, superclassname ) )
       {
       superclassname = trimWhitespace( superclassname );
-      printf( "%s (%s)\n", classname.c_str(), superclassname.c_str() );
+      /*
+      printf(
+        // For the vtk${KIT}Descriptors.cxx file:
+        "#include \"%s\"\n"
+        "  %s::CollectClassDescriptor();\n",
+        vtksys::SystemTools::GetFilenameName( argv[1] ).c_str(),
+        classname.c_str() );
+        */
       vtkStdString arg;
       // read as long as the descriptor terminator is ';'... we might have more descriptors
       vtkstd::vector< vtkstd::vector<vtkStdString> > descriptors;
