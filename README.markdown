@@ -42,13 +42,16 @@ subclasses).
 Inside the `vtkDescriptorMacro`, the final argument consists of a
 semicolon-separated list of class members.
 Each declaration has 3 mandatory components that must be in the following order
+
 * the name of the member (e.g., `Xxx`);
 * the access type, either `RO` (for read-only where only `GetXxx()` is defined)
   or `RW` (for read-write where `SetXxx()` is also defined);
 * the storage type, which must be one of the type macros defined in `vtkType.h`.
+
 The storage type may be followed by an integer in square brackets
 indicating the member is a vector of the specified dimension.
 Optional components of the member specification include
+
 * The `BOOLEAN` keyword to indicate that only true and false values are accepted.
 * The `ENUM` keyword followed by a list of space-separated values
   in curly brackets indicates that the member may only take on those discrete values;
@@ -61,8 +64,10 @@ Optional components of the member specification include
 * The `DEFAULT` keyword followed by a single value
   (or a space-separated tuple in square brackets for vector-valued members)
   indicating the member's initial value on construction.
+
 Note that for properties with the storage type VTK_VARIANT, any values specified
 using the optional keywords above are parsed like so:
+
 * The keyword `INVALID` (or any case-insensitive variation) indicates a
   vtkVariant with no valid value assigned. No quotation marks of any sort
   should be placed around the keyword.
@@ -70,6 +75,7 @@ using the optional keywords above are parsed like so:
 * Any other value is treated as numeric if conversion is possible or a string otherwise.
   In the future, conventions for different integer number bases may be possible but
   for now, this is not so.
+
 Some examples include:
 
     Foober RW VTK_DOUBLE[3] MIN [ 0 0 0 ] MAX [ 1 1 1 ] DEFAULT [ 0 0 0 ] ARCHIVE;
