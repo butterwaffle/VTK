@@ -18,11 +18,17 @@
 
 #include "vtkVariant.h"
 #include "vtkMemberDescriptor.h"
+#include "vtkTypeTraits.h"
 
 template< class C_, typename V_ >
 class VTK_COMMON_EXPORT vtkMemberDescriptorImpl : public vtkMemberDescriptor
 {
 public:
+  virtual int GetType()
+    {
+    vtkTypeTraits<V_> traits;
+    return traits.VTKTypeID();
+    }
   virtual vtkVariant GetValue( vtkObject* cls )
     {
     return (static_cast<C_*>( cls )->*GetMethod)();
@@ -89,6 +95,11 @@ template< class C_, typename V_, int d_ >
 class VTK_COMMON_EXPORT vtkMemberDescriptorVectorImpl : public vtkMemberDescriptor
 {
 public:
+  virtual int GetType()
+    {
+    vtkTypeTraits<V_> traits;
+    return traits.VTKTypeID();
+    }
   virtual int GetNumberOfComponents()
     { return d_; }
   virtual vtkVariant GetValue( vtkObject* cls )

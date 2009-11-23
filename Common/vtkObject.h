@@ -48,7 +48,6 @@ class vtkSubjectHelper;
 class vtkClassDescriptor;
 class vtkCommand;
 class vtkMemberDescriptor;
-class vtkObjectP;
 
 class VTK_COMMON_EXPORT vtkObject : public vtkObjectBase
 {
@@ -178,8 +177,6 @@ public:
   /// Return an object describing attributes of a class.
   static vtkClassDescriptor* GetClassDescriptor( const char* className );
 
-  static void CleanupClassDescriptors();
-
   //BTX
   // Description:
   // These functions provide access to member descriptors in a way that is wrappable, or at least
@@ -204,7 +201,6 @@ protected:
   unsigned char      Debug;      // Enable debug messages
   vtkTimeStamp       MTime;      // Keep track of modification time
   vtkSubjectHelper*  SubjectHelper; // List of observers on this object
-  static vtkObjectP* ClassInternals; // Map of vtkClassDescriptors for vtkObject and all its descendants
 
   // Description:
   // These methods allow a command to exclusively grab all events. (This

@@ -30,6 +30,7 @@
 class vtkMemberDescriptor;
 template< class C_, typename V_ > class vtkMemberDescriptorImpl;
 template< class C_, typename V_, int d_ > class vtkMemberDescriptorVectorImpl;
+class vtkClassDescriptorP;
 
 class VTK_COMMON_EXPORT vtkClassDescriptor
 {
@@ -68,9 +69,17 @@ public:
 
   vtkStdString GetName() { return this->Name; }
 
+  /// Return an object describing attributes of a class.
+  static vtkClassDescriptor* GetClassDescriptor( const char* className );
+
+  /// Destroy class descriptors to make memory allocation debuggers happy.
+  static void CleanupClassDescriptors();
+
+protected:
   vtkStdString Name;
   vtkClassDescriptor* Superclass;
   vtkstd::vector<vtkMemberDescriptor*> Descriptors;
+  static vtkClassDescriptorP* ClassInternals; // Map of vtkClassDescriptors for vtkObject and all its descendants
 };
 
 #endif // __vtkClassDescriptor_h

@@ -35,6 +35,7 @@ class VTK_COMMON_EXPORT vtkMemberDescriptor
 {
 public:
   vtkStdString GetName() { return this->Name; }
+  virtual int GetType() { return VTK_VOID; }
   virtual int GetNumberOfComponents() { return 1; }
   virtual vtkVariant GetValue( vtkObject* instance, int component ) = 0;
   virtual void SetValue( vtkObject* instance, int component, vtkVariant val ) = 0;

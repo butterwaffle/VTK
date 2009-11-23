@@ -29,13 +29,6 @@ vtkCxxRevisionMacro(vtkObject, "$Revision$");
 // Initialize static member that controls warning display
 static int vtkObjectGlobalWarningDisplay = 1;
 
-// Initialize static members for storing class descriptors.
-vtkObjectP* vtkObject::ClassInternals = 0;
-
-class vtkObjectP : public vtkstd::map<vtkStdString,vtkClassDescriptor*>
-{
-};
-
 //----------------------------------------------------------------------------
 // avoid dll boundary problems
 #ifdef _WIN32
@@ -897,26 +890,7 @@ void vtkObject::UnRegisterInternal(vtkObjectBase* o, int check)
 //----------------------------------------------------------------------------
 vtkClassDescriptor* vtkObject::GetClassDescriptor( const char* className )
 {
-  if ( ! vtkObject::ClassInternals )
-    {
-    vtkObject::ClassInternals = new vtkObjectP;
-    atexit( vtkObject::CleanupClassDescriptors );
-    }
-  vtkstd::map<vtkStdString,vtkClassDescriptor*>::iterator it = vtkObject::ClassInternals->find( className );
-  if ( it == vtkObject::ClassInternals->end() )
-    {
-    return 0;
-    }
-  return it->second;
-}
-
-void vtkObject::CleanupClassDescriptors()
-{
-  if ( vtkObject::ClassInternals )
-    {
-    delete vtkObject::ClassInternals;
-    vtkObject::ClassInternals = 0;
-    }
+  return vtkClassDescriptor::GetClassDescriptor( className );
 }
 
 int vtkObject::GetNumberOfDescriptors()

@@ -1,10 +1,13 @@
 #
 # Add custom targets to populate class descriptors with members.
 #
-MACRO(VTK_CREATE_DESCRIPTOR TARGET SRC_LIST_NAME SOURCES)
+MACRO(VTK_CREATE_DESCRIPTOR TARGET SRC_LIST_NAME KIT_NAME SOURCES)
   IF(NOT VTK_CREATE_DESCRIPTOR_EXE)
     MESSAGE(SEND_ERROR "VTK_CREATE_DESCRIPTOR_EXE not specified when calling VTK_CREATE_DESCRIPTOR")
   ENDIF(NOT VTK_CREATE_DESCRIPTOR_EXE)
+
+  SET( VTK_DESCRIPTOR_INCS )
+  SET( VTK_DESCRIPTOR_CXX )
 
   # The shell into which nmake.exe executes the custom command has some issues
   # with mixing quoted and unquoted arguments :( Let's help.
@@ -24,13 +27,13 @@ MACRO(VTK_CREATE_DESCRIPTOR TARGET SRC_LIST_NAME SOURCES)
     
     # if we should wrap it
     IF (NOT TMP_WRAP_EXCLUDE)
-      
+
       # what is the filename without the extension
       GET_FILENAME_COMPONENT(TMP_FILENAME ${FILE} NAME_WE)
-      
+
       # the input file might be full path so handle that
       GET_FILENAME_COMPONENT(TMP_FILEPATH ${FILE} PATH)
-      
+
       # compute the input filename
       IF (TMP_FILEPATH)
         SET(TMP_INPUT ${TMP_FILEPATH}/${TMP_FILENAME}.h) 
@@ -39,7 +42,7 @@ MACRO(VTK_CREATE_DESCRIPTOR TARGET SRC_LIST_NAME SOURCES)
         SET(TMP_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/${TMP_FILENAME}.h)
         SET(TMP_CXX ${CMAKE_CURRENT_SOURCE_DIR}/${TMP_FILENAME}.cxx)
       ENDIF (TMP_FILEPATH)
-      
+
       # is it abstract?
       GET_SOURCE_FILE_PROPERTY(TMP_ABSTRACT ${FILE} ABSTRACT)
       IF (TMP_ABSTRACT)
@@ -47,11 +50,16 @@ MACRO(VTK_CREATE_DESCRIPTOR TARGET SRC_LIST_NAME SOURCES)
       ELSE (TMP_ABSTRACT)
         SET(TMP_CONCRETE 1)
       ENDIF (TMP_ABSTRACT)
-      
+
       # new source file is nameDescriptor.cxx, add to resulting list
       SET(${SRC_LIST_NAME} ${${SRC_LIST_NAME}} 
         ${TMP_FILENAME}Descriptor.cxx)
-      
+
+      SET( VTK_DESCRIPTOR_INCS 
+        "${VTK_DESCRIPTOR_INCS}#include \"${TMP_FILENAME}.h\"\n")
+      SET( VTK_DESCRIPTOR_CXX 
+        "${VTK_DESCRIPTOR_CXX}  ${TMP_FILENAME}::CollectClassDescriptor();\n")
+
       # add custom command to output
       ADD_CUSTOM_COMMAND(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${TMP_FILENAME}Descriptor.cxx
@@ -69,5 +77,9 @@ MACRO(VTK_CREATE_DESCRIPTOR TARGET SRC_LIST_NAME SOURCES)
       
     ENDIF (NOT TMP_WRAP_EXCLUDE)
   ENDFOREACH(FILE)
+
+  FILE( WRITE "${CMAKE_CURRENT_BINARY_DIR}/vtk${KIT_NAME}Descriptor.cxx"
+    "${VTK_DESCRIPTOR_INCS}\nvoid vtk${KIT_NAME}Descriptor_Initialize()\n{\n${VTK_DESCRIPTOR_CXX}\n}"
+  )
 
 ENDMACRO(VTK_CREATE_DESCRIPTOR)

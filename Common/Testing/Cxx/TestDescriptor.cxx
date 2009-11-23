@@ -5,6 +5,22 @@
 #include "vtkClassDescriptor.h"
 #include "vtkMemberDescriptor.h"
 
+#include "vtkCommonDescriptor.cxx"
+
+static void vtkPrintMembers( vtkClassDescriptor* cdesc )
+{
+  cout << cdesc->GetName() << "\n";
+  int nd = cdesc->GetNumberOfMembers();
+  for ( int i = 0; i < nd; ++ i )
+    {
+    vtkMemberDescriptor* mdesc = cdesc->GetMemberDescriptor( i );
+    cout
+      << "  " << mdesc->GetClassDescriptor()->GetName().c_str() << "::"
+      << mdesc->GetName().c_str() << ": "
+      << vtkImageScalarTypeNameMacro(mdesc->GetType()) << "[" << mdesc->GetNumberOfComponents() << "]\n";
+    }
+}
+
 static void vtkPrintMembers( vtkObject* obj )
 {
   cout << obj->GetClassName() << "\n";
@@ -14,7 +30,8 @@ static void vtkPrintMembers( vtkObject* obj )
     vtkMemberDescriptor* mdesc = obj->GetDescriptor( i );
     cout
       << "  " << mdesc->GetClassDescriptor()->GetName().c_str() << "::"
-      << mdesc->GetName().c_str() << ":";
+      << mdesc->GetName().c_str() << ":"
+      << vtkImageScalarTypeNameMacro(mdesc->GetType()) << "[" << mdesc->GetNumberOfComponents() << "] =";
     for ( int j = 0; j < mdesc->GetNumberOfComponents(); ++ j )
       {
       vtkVariant val = mdesc->GetValue( obj, j );
@@ -33,6 +50,14 @@ int TestDescriptor( int argc, char* argv[] )
       {
       vtkPrintMembers( obj );
       obj->Delete();
+      }
+    else
+      {
+      vtkClassDescriptor* cdesc = vtkObject::GetClassDescriptor( argv[1] );
+      if ( cdesc )
+        {
+        vtkPrintMembers( cdesc );
+        }
       }
     }
   else

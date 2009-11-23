@@ -47,9 +47,9 @@ Each declaration has 3 mandatory components that must be in the following order
 * the access type, either `RO` (for read-only where only `GetXxx()` is defined)
   or `RW` (for read-write where `SetXxx()` is also defined);
 * the storage type, which must be one of the type macros defined in `vtkType.h`.
+  The storage type may be followed by an integer in square brackets
+  indicating the member is a vector of the specified dimension.
 
-The storage type may be followed by an integer in square brackets
-indicating the member is a vector of the specified dimension.
 Optional components of the member specification include
 
 * The `BOOLEAN` keyword to indicate that only true and false values are accepted.
@@ -87,3 +87,22 @@ Some examples include:
 * Take care of destruction on program exit to make valgrind happy.
 * Fix `vtkObject::GetClassDescriptor( char* className )` since it may
   not work with changes required to work around lazy dynamic library loading.
+* Implement `MIN`, `MAX`, `ENUM`, and `DEFAULT` keywords and parsing of vector
+  values.
+* Think about better (bulk, non-component-wise) access to vector members.
+  For instance, we could have a signature like
+        vtkVariantArray* arr;
+        vtkMemberDescriptor* mdesc;
+        vtkObject* cls;
+        mdesc->GetValue( cls, arr );
+  at a minimum. At best, we might support
+        double vals[3];
+        vtkMemberDescriptor* mdesc;
+        vtkObject* cls;
+        mdesc->GetValue( cls, vals );
+  where it would be assumed that you allocate `vals` to the correct size or larger.
+* Need a way to get the class descriptor for a particular member because right now
+  it's impossible to know which members belong to a superclass and which belong to
+  the class itself.
+
+

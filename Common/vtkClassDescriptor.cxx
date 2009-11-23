@@ -3,6 +3,15 @@
 
 #include "vtkObject.h"
 
+#include <vtkstd/map>
+
+// Initialize static members for storing class descriptors.
+vtkClassDescriptorP* vtkClassDescriptor::ClassInternals = 0;
+
+class vtkClassDescriptorP : public vtkstd::map<vtkStdString,vtkClassDescriptor*>
+{
+};
+
 vtkClassDescriptor::vtkClassDescriptor()
 {
 }
@@ -18,9 +27,21 @@ vtkClassDescriptor::~vtkClassDescriptor()
 
 vtkClassDescriptor* vtkClassDescriptor::RegisterClass( vtkStdString name, vtkClassDescriptor* superclassDescriptor )
 {
+  if ( ! vtkClassDescriptor::ClassInternals )
+    {
+    vtkClassDescriptor::ClassInternals = new vtkClassDescriptorP;
+    atexit( vtkClassDescriptor::CleanupClassDescriptors );
+    }
   vtkClassDescriptor* self = new vtkClassDescriptor;
   self->Name = name;
   self->Superclass = superclassDescriptor;
+  vtkstd::map<vtkStdString,vtkClassDescriptor*>::iterator it = vtkClassDescriptor::ClassInternals->find( name );
+  if ( it != vtkClassDescriptor::ClassInternals->end() )
+    { // Oops, already registered.
+    delete self;
+    return it->second;
+    }
+  (*vtkClassDescriptor::ClassInternals)[name] = self;
   return self;
 }
 
@@ -67,5 +88,29 @@ vtkMemberDescriptor* vtkClassDescriptor::GetMemberDescriptor( vtkStdString membe
     return this->Superclass->GetMemberDescriptor( memberName );
     }
   return 0;
+}
+
+vtkClassDescriptor* vtkClassDescriptor::GetClassDescriptor( const char* className )
+{
+  if ( ! vtkClassDescriptor::ClassInternals )
+    {
+    vtkClassDescriptor::ClassInternals = new vtkClassDescriptorP;
+    atexit( vtkClassDescriptor::CleanupClassDescriptors );
+    }
+  vtkstd::map<vtkStdString,vtkClassDescriptor*>::iterator it = vtkClassDescriptor::ClassInternals->find( className );
+  if ( it == vtkClassDescriptor::ClassInternals->end() )
+    {
+    return 0;
+    }
+  return it->second;
+}
+
+void vtkClassDescriptor::CleanupClassDescriptors()
+{
+  if ( vtkClassDescriptor::ClassInternals )
+    {
+    delete vtkClassDescriptor::ClassInternals;
+    vtkClassDescriptor::ClassInternals = 0;
+    }
 }
 
