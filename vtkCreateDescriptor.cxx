@@ -5,8 +5,10 @@
 #include "vtkStdString.h"
 #include <vtksys/RegularExpression.hxx>
 #include <vtksys/SystemTools.hxx>
+#include <vtksys/ios/sstream>
 #include <vtkstd/vector>
 #include <vtkstd/string>
+#include <vtkstd/deque>
 
 void usage( char* prog, const char* msg )
 {
@@ -71,11 +73,24 @@ int readNameArg( FILE* hdr, vtkStdString& argOut )
   return reason;
 }
 
+bool isInString( vtkstd::deque<int>& nests )
+{
+  if ( nests.empty() )
+    return false;
+  int c = nests.back();
+  if ( c == '\'' || c == '"' )
+    return true;
+  return false;
+}
+
 // Read a single descriptor specification from the final argument of vtkDescriptorMacro.
 int readDescriptorArg( FILE* hdr, vtkStdString& argOut )
 {
   argOut.clear();
   int reason = -1;
+  vtkstd::deque<int> nests;
+  bool inString = false; // shouldn't force strings to contain equally-nested parentheses.
+  // nesting of '(', '\'', '"', or '[' will result in terminating characters being ignored until the *matching* close operation.
   do
     {
     int c = getc( hdr );
@@ -84,18 +99,224 @@ int readDescriptorArg( FILE* hdr, vtkStdString& argOut )
     case EOF:
       reason = 0;
       return reason;
+    case '(':
+      if ( ! inString )
+        {
+        nests.push_back( ')' );
+        }
+      argOut.append( (char*) &c );
+      break;
+    case '\'':
+    case '"':
+      if ( nests.back() == c )
+        {
+        nests.pop_back();
+        inString = false;
+        }
+      else if ( ! inString )
+        {
+        nests.push_back( c );
+        inString = true;
+        }
+      argOut.append( (char*) &c );
+      break;
     case ';':
-      reason = 1;
-      return reason;
+      if ( nests.empty() )
+        {
+        reason = 1;
+        return reason;
+        }
+      argOut.append( (char*) &c );
+      break;
     case ')':
-      reason = 2;
-      return reason;
+      if ( nests.empty() )
+        {
+        reason = 2;
+        return reason;
+        }
+      else if ( ! inString && nests.back() == ')' )
+        {
+        nests.pop_back();
+        }
+      argOut.append( (char*) &c );
+      break;
+    case '\\':
+      c = getc( hdr );
+      if ( c == EOF )
+        {
+        reason = 0;
+        return reason;
+        }
+      // fall through...
     default:
       argOut.append( (char*) &c );
       break;
       }
     }
   while ( ! feof( hdr ) );
+  return reason;
+}
+
+// Given an opening mark, return its matching closing mark
+int closingMark( int openingMark )
+{
+  switch ( openingMark )
+    {
+  case '(':
+    return ')';
+  case '[':
+    return ']';
+  case '{':
+    return '}';
+  case '<':
+    return '>';
+  case '`':
+  case '|':
+  case '\'':
+  case '"':
+    return openingMark;
+    }
+  return 0; // not a nesting mark.
+}
+
+// Read a single descriptor specification from the final argument of vtkDescriptorMacro.
+int splitDescriptorArg( vtkStdString& specIn, vtkstd::vector<vtkStdString>& tokensOut )
+{
+  tokensOut.clear();
+  vtkStdString curToken;
+  int reason = 0;
+  vtkstd::deque<int> nests;
+  vtkStdString::iterator it = specIn.begin();
+  bool inString = false; // shouldn't force strings to contain equally-nested parentheses.
+  // nesting of '(', '\'', '"', or '[' will result in terminating characters being ignored until the *matching* close operation.
+  for ( it = specIn.begin(); it != specIn.end(); ++ it )
+    {
+    int c = *it;
+    switch ( c )
+      {
+    case ' ':
+    case '\n':
+    case '\r':
+    case '\t':
+      if ( ! inString )
+        { // Start a new token
+        if ( curToken.size() )
+          {
+          tokensOut.push_back( curToken );
+          curToken.clear();
+          }
+        }
+      else
+        {
+        curToken.append( (char*) &c );
+        }
+      break;
+    case '(':
+    case '[':
+    case '{':
+      if ( ! inString )
+        { // Start a new nest
+        if ( curToken.size() )
+          {
+          tokensOut.push_back( curToken );
+          curToken.clear();
+          }
+        tokensOut.push_back( (char*) &c );
+        nests.push_back( closingMark( c ) );
+        }
+      else
+        {
+        curToken.append( (char*) &c );
+        }
+      break;
+    case '\'':
+    case '"':
+      if ( nests.back() == c )
+        { // This quote closes out a string
+        nests.pop_back();
+        inString = false;
+        curToken.append( (char*) &c );
+        tokensOut.push_back( curToken );
+        curToken.clear();
+        }
+      else if ( ! inString )
+        { // This quote opens a string
+        if ( ! curToken.empty() )
+          {
+          tokensOut.push_back( curToken );
+          curToken.clear();
+          }
+        nests.push_back( c );
+        inString = true;
+        curToken.append( (char*) &c );
+        }
+      else
+        { // We're in a string with a different delimiter, so this quote is a literal.
+        curToken.append( (char*) &c );
+        }
+      break;
+    case ';':
+      if ( nests.empty() )
+        {
+        reason = 1;
+        return reason;
+        }
+      else if ( ! inString )
+        {
+        if ( ! curToken.empty() )
+          {
+          tokensOut.push_back( curToken );
+          curToken.clear();
+          }
+        // tokensOut.push_back( ";" ); // Semicolon is a separator... do not tokenize it.
+        }
+      else
+        {
+        curToken.append( (char*) &c );
+        }
+      break;
+    case ')':
+    case ']':
+    case '}':
+      if ( nests.empty() )
+        { // A syntax error.. closing mark without an opening mark.
+        reason = 2;
+        return reason;
+        }
+      else if ( ! inString && nests.back() == c )
+        {
+        if ( ! curToken.empty() )
+          {
+          tokensOut.push_back( curToken );
+          curToken.clear();
+          }
+        tokensOut.push_back( vtkStdString( (char*) &c ) );
+        nests.pop_back();
+        }
+      else if ( inString )
+        {
+        curToken.append( (char*) &c );
+        }
+      else
+        { // syntax error... mismatched open/close marks.
+        reason = 2;
+        return reason;
+        }
+      break;
+    case '\\':
+      ++ it;
+      if ( it == specIn.end() )
+        {
+        reason = 0;
+        return reason;
+        }
+      c = *it;
+      // fall through...
+    default:
+      curToken.append( (char*) &c );
+      break;
+      }
+    }
   return reason;
 }
 
@@ -110,11 +331,11 @@ vtkstd::string trimWhitespace( vtkstd::string& orig )
 }
 
 // Remove empty arguments as well as trim whitespace from start and end of non-empty strings.
-vtkstd::vector<vtkstd::string> cleanArgs( vtkstd::vector<vtkstd::string>& argsIn )
+vtkstd::vector<vtkStdString> cleanArgs( vtkstd::vector<vtkStdString>& argsIn )
 {
-  vtkstd::vector<vtkstd::string> argsOut;
+  vtkstd::vector<vtkStdString> argsOut;
   vtksys::RegularExpression trimRe( "[ \n]*([^ \n]+)[ \n]*" );
-  vtkstd::vector<vtkstd::string>::iterator it;
+  vtkstd::vector<vtkStdString>::iterator it;
   for ( it = argsIn.begin(); it != argsIn.end(); ++ it )
     {
     if ( trimRe.find( *it ) )
@@ -125,8 +346,22 @@ vtkstd::vector<vtkstd::string> cleanArgs( vtkstd::vector<vtkstd::string>& argsIn
   return argsOut;
 }
 
+// A utility to convert strings to numbers.
+// It is stolen from vtkVariant.cxx (which we can't use -- the
+// descriptor parser cannot rely on vtkCommon since it is used
+// to construct vtkCommon).
+template <typename T_>
+T_ toNumeric( vtkStdString str, T_* ignored = 0 )
+{
+  (void) ignored;
+  vtksys_ios::istringstream vstr( str );
+  T_ data;
+  vstr >> data;
+  return data;
+}
+
 void writeClassDescriptor(
-  FILE* dsc, const char* classname, const char* superclassname, vtkstd::vector<vtkstd::vector<vtkstd::string> >& members )
+  FILE* dsc, const char* classname, const char* superclassname, vtkstd::vector<vtkstd::vector<vtkStdString> >& members )
 {
   // I. Write preamble
   fprintf( dsc,
@@ -152,10 +387,11 @@ void writeClassDescriptor(
     }
 
   // II. Add member descriptors
-  vtkstd::vector<vtkstd::vector<vtkstd::string> >::iterator it;
-  vtkstd::vector<vtkstd::string>::iterator desc;
+  vtkstd::vector<vtkstd::vector<vtkStdString> >::iterator it;
+  vtkstd::vector<vtkStdString>::iterator desc;
   for ( it = members.begin(); it != members.end(); ++ it )
     {
+    // II.a. Parse the fixed member specification tokens
     desc = it->begin();
     vtkstd::string memberName = *desc; ++ desc;
     vtkstd::string memberAccess = *desc; ++ desc;
@@ -184,10 +420,23 @@ void writeClassDescriptor(
     else if ( memberType == "VTK_VARIANT" ) memberTypeName = "vtkVariant";
     else if ( memberType == "VTK_OBJECT" ) memberTypeName = "vtkObject*";
     else memberTypeName = "Undefined";
+    int memberComponents = 1;
+    if ( desc != it->end() && *desc == "[" )
+      {
+      int dim;
+      if ( ++ desc != it->end() && ( dim = toNumeric<int>( *desc ) ) > 0 && ++ desc != it->end() && *desc == "]" )
+        {
+        memberComponents = dim;
+        }
+      else
+        {
+        printf( "Bad member %s %s %s. Skipping\n", memberName.c_str(), memberAccess.c_str(), memberType.c_str() ); 
+        }
+      }
 
-    bool memberSerial = false;
+    bool memberSerial = ( memberAccess == "RO" ? false : true );
     bool memberBoolean = false;
-    // Parse optional member properties
+    // II.b. Parse optional member specification tokens
     for ( ; desc != it->end(); ++ desc )
       {
       if ( *desc == "ARCHIVE" )
@@ -201,27 +450,80 @@ void writeClassDescriptor(
         {
         memberBoolean = true;
         }
+      else if ( *desc == "ENUM" )
+        {
+        }
+      else if ( *desc == "MIN" )
+        {
+        }
+      else if ( *desc == "MAX" )
+        {
+        }
+      else if ( *desc == "DEFAULT" )
+        {
+        }
+      else if ( *desc == "INVALID" )
+        {
+        }
       }
+
+    cout
+      << "  " << memberName.c_str() << " (" << memberAccess.c_str() << ") "
+      << memberTypeName.c_str() << "[" << memberComponents << "]";
+    if ( memberSerial )
+      cout << " ARCHIVE";
+    if ( memberBoolean )
+      cout << " BOOLEAN";
+    cout << "\n";
+
+    // II.c. Create a new member descriptor from our parse results
     if ( memberAccess == "RW" )
       { // Both Set and Get methods exist
-      fprintf( dsc,
-        "  mdesc = cdesc->AddMember<%s,%s>( \"%s\", %s, &%s::Get%s, &%s::Set%s );\n",
-        classname, memberTypeName.c_str(),
-        memberName.c_str(),
-        memberSerial ? "true" : "false",
-        classname, memberName.c_str(),
-        classname, memberName.c_str()
+      if ( memberComponents <= 1 )
+        {
+        fprintf( dsc,
+          "  mdesc = cdesc->AddMember<%s,%s>( \"%s\", %s, &%s::Get%s, &%s::Set%s );\n",
+          classname, memberTypeName.c_str(),
+          memberName.c_str(),
+          memberSerial ? "true" : "false",
+          classname, memberName.c_str(),
+          classname, memberName.c_str()
         );
+        }
+      else
+        {
+        fprintf( dsc,
+          "  mdesc = cdesc->AddMember<%s,%s,%d>( \"%s\", %s, &%s::Get%s, &%s::Set%s );\n",
+          classname, memberTypeName.c_str(), memberComponents,
+          memberName.c_str(),
+          memberSerial ? "true" : "false",
+          classname, memberName.c_str(),
+          classname, memberName.c_str()
+        );
+        }
       }
     else
       { // Only a Get method exists
-      fprintf( dsc,
-        "  mdesc = cdesc->AddMember<%s,%s>( \"%s\", %s, &%s::Get%s, 0 );\n",
-        classname, memberTypeName.c_str(),
-        memberName.c_str(),
-        memberSerial ? "true" : "false",
-        classname, memberName.c_str()
+      if ( memberComponents <= 1 )
+        {
+        fprintf( dsc,
+          "  mdesc = cdesc->AddMember<%s,%s>( \"%s\", %s, &%s::Get%s, 0 );\n",
+          classname, memberTypeName.c_str(),
+          memberName.c_str(),
+          memberSerial ? "true" : "false",
+          classname, memberName.c_str()
         );
+        }
+      else
+        {
+        fprintf( dsc,
+          "  mdesc = cdesc->AddMember<%s,%s,%d>( \"%s\", %s, &%s::Get%s, 0 );\n",
+          classname, memberTypeName.c_str(), memberComponents,
+          memberName.c_str(),
+          memberSerial ? "true" : "false",
+          classname, memberName.c_str()
+        );
+        }
       }
     }
 
@@ -255,16 +557,18 @@ int main( int argc, char* argv[] )
       printf( "%s (%s)\n", classname.c_str(), superclassname.c_str() );
       vtkStdString arg;
       // read as long as the descriptor terminator is ';'... we might have more descriptors
-      vtkstd::vector< vtkstd::vector<vtkstd::string> > descriptors;
+      vtkstd::vector< vtkstd::vector<vtkStdString> > descriptors;
       while ( readDescriptorArg( hdr, arg ) == 1 )
         {
-        vtkstd::vector<vtkstd::string> args;
-        vtksys::SystemTools::Split( arg.c_str(), args, ' ' );
-        args = cleanArgs( args );
-        if ( args.size() >= 3 )
+        vtkstd::vector<vtkStdString> args;
+        //vtksys::SystemTools::Split( arg.c_str(), args, ' ' );
+        if ( ! splitDescriptorArg( arg, args ) )
           {
-          printf( "Property <%s> Access <%s> Type <%s>\n", args[0].c_str(), args[1].c_str(), args[2].c_str() );
-          descriptors.push_back( args );
+          args = cleanArgs( args );
+          if ( args.size() >= 3 )
+            {
+            descriptors.push_back( args );
+            }
           }
         }
       fclose( hdr );

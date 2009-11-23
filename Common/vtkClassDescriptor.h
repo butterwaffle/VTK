@@ -29,6 +29,7 @@
 
 class vtkMemberDescriptor;
 template< class C_, typename V_ > class vtkMemberDescriptorImpl;
+template< class C_, typename V_, int d_ > class vtkMemberDescriptorVectorImpl;
 
 class VTK_COMMON_EXPORT vtkClassDescriptor
 {
@@ -44,6 +45,13 @@ public:
     bool serializable,
     typename vtkMemberDescriptorImpl<C_,V_>::GetMemberType gmeth,
     typename vtkMemberDescriptorImpl<C_,V_>::SetMemberType smeth );
+
+  template< class C_, typename V_, int d_ >
+  vtkMemberDescriptor* AddMember(
+    vtkStdString name,
+    bool serializable,
+    typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::GetMemberType gmeth,
+    typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::SetMemberType smeth );
 
   template< class C_, typename V_ >
   vtkMemberDescriptor* AddMember(

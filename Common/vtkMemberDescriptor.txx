@@ -27,7 +27,15 @@ public:
     {
     return (static_cast<C_*>( cls )->*GetMethod)();
     }
+  virtual vtkVariant GetValue( vtkObject* cls, int vtkNotUsed(component) )
+    {
+    return (static_cast<C_*>( cls )->*GetMethod)();
+    }
   virtual void SetValue( vtkObject* cls, vtkVariant val )
+    {
+    (static_cast<C_*>( cls )->*SetMethod)( vtkVariantConverter( val ) );
+    }
+  virtual void SetValue( vtkObject* cls, int vtkNotUsed(component), vtkVariant val )
     {
     (static_cast<C_*>( cls )->*SetMethod)( vtkVariantConverter( val ) );
     }
@@ -75,6 +83,52 @@ protected:
 
   V_ Min;
   V_ Max;
+};
+
+template< class C_, typename V_, int d_ >
+class VTK_COMMON_EXPORT vtkMemberDescriptorVectorImpl : public vtkMemberDescriptor
+{
+public:
+  virtual int GetNumberOfComponents()
+    { return d_; }
+  virtual vtkVariant GetValue( vtkObject* cls )
+    {
+    return this->GetValue( cls, 0 );
+    }
+  virtual vtkVariant GetValue( vtkObject* cls, int component )
+    {
+    V_ tmp[d_];
+    (static_cast<C_*>( cls )->*GetMethod)( tmp );
+    return tmp[component];
+    }
+  virtual void SetValue( vtkObject* cls, vtkVariant val )
+    {
+    this->SetValue( cls, 0, val );
+    }
+  virtual void SetValue( vtkObject* cls, int component, vtkVariant val )
+    {
+    V_ tmp[d_];
+    (static_cast<C_*>( cls )->*GetMethod)( tmp );
+    tmp[component] = vtkVariantConverter( val );
+    (static_cast<C_*>( cls )->*SetMethod)( tmp );
+    }
+protected:
+  friend class vtkClassDescriptor;
+  typedef void (C_::*SetMemberType)( V_[d_] );
+  typedef void (C_::*GetMemberType)( V_[d_] );
+
+  vtkMemberDescriptorVectorImpl( vtkStdString name, bool serializable, GetMemberType gmeth, SetMemberType smeth )
+    : vtkMemberDescriptor( name, serializable )
+    {
+    // NB: C_::ClassDescriptor hasn't been set inside C_::PrepareDescriptor yet, so the next won't work:
+    // this->Class = C_::ClassDescriptor;
+    this->Class = 0;
+    this->SetMethod = smeth;
+    this->GetMethod = gmeth;
+    }
+
+  SetMemberType SetMethod;
+  GetMemberType GetMethod;
 };
 
 

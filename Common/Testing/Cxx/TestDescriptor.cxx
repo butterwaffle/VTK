@@ -12,12 +12,15 @@ static void vtkPrintMembers( vtkObject* obj )
   for ( int i = 0; i < nd; ++ i )
     {
     vtkMemberDescriptor* mdesc = obj->GetDescriptor( i );
-    vtkVariant val = mdesc->GetValue( obj );
     cout
       << "  " << mdesc->GetClassDescriptor()->GetName().c_str() << "::"
-      << mdesc->GetName().c_str() << ": "
-      << ( val.GetType() == VTK_UNSIGNED_CHAR ? vtkVariant( val.ToInt() ) : val )
-      << "\n";
+      << mdesc->GetName().c_str() << ":";
+    for ( int j = 0; j < mdesc->GetNumberOfComponents(); ++ j )
+      {
+      vtkVariant val = mdesc->GetValue( obj, j );
+      cout << " " << ( val.GetType() == VTK_UNSIGNED_CHAR ? vtkVariant( val.ToInt() ) : val );
+      }
+    cout << "\n";
     }
 }
 
