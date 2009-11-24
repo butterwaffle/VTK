@@ -96,7 +96,7 @@ Some examples include:
   not work with changes required to work around lazy dynamic library loading.
   (partially implemented)
 * Implement `MIN`, `MAX`, `ENUM`, and `DEFAULT` keywords and parsing of vector
-  values.
+  values. (partially implemented)
 * Think about better (bulk, non-component-wise) access to vector members.
   For instance, we could have a signature like
         vtkVariantArray* arr;
@@ -109,8 +109,5 @@ Some examples include:
         vtkObject* cls;
         mdesc->GetValue( cls, vals );
   where it would be assumed that you allocate `vals` to the correct size or larger.
-* Need a way to get the class descriptor for a particular member because right now
-  it's impossible to know which members belong to a superclass and which belong to
-  the class itself.
 
 

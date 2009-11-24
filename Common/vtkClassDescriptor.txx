@@ -28,20 +28,20 @@
 #include "vtkMemberDescriptor.h"
 #include "vtkMemberDescriptor.txx"
 
-template< class C_, typename V_ >
-vtkMemberDescriptor* vtkClassDescriptor::AddObjectMember(
+template< class C_ >
+vtkMemberDescriptor* vtkClassDescriptor::AddOpaquePointerMember(
   vtkStdString name, bool serializable,
-  typename vtkMemberDescriptorObjImpl<C_,V_>::GetMemberType gmeth,
-  typename vtkMemberDescriptorObjImpl<C_,V_>::SetMemberType smeth )
+  typename vtkMemberDescriptorVoidPImpl<C_>::GetMemberType gmeth,
+  typename vtkMemberDescriptorVoidPImpl<C_>::SetMemberType smeth )
 {
-  vtkMemberDescriptor* mdesc = new vtkMemberDescriptorObjImpl<C_,V_>( name, serializable, gmeth, smeth );
+  vtkMemberDescriptor* mdesc = new vtkMemberDescriptorVoidPImpl<C_>( name, serializable, gmeth, smeth );
   mdesc->Class = this;
   this->Descriptors.push_back( mdesc );
   return mdesc;
 }
 
 template< class C_, typename V_ >
-vtkMemberDescriptor* vtkClassDescriptor::AddMember(
+vtkMemberDescriptor* vtkClassDescriptor::AddPrimitiveMember(
   vtkStdString name, bool serializable,
   typename vtkMemberDescriptorImpl<C_,V_>::GetMemberType gmeth,
   typename vtkMemberDescriptorImpl<C_,V_>::SetMemberType smeth )
@@ -52,8 +52,21 @@ vtkMemberDescriptor* vtkClassDescriptor::AddMember(
   return mdesc;
 }
 
+template< class C_, typename V_ >
+vtkMemberDescriptor* vtkClassDescriptor::AddPrimitiveMember(
+  vtkStdString name, bool serializable,
+  typename vtkMemberDescriptorImpl<C_,V_>::GetMemberType gmeth,
+  typename vtkMemberDescriptorImpl<C_,V_>::SetMemberType smeth,
+  V_ min, V_ max )
+{
+  vtkMemberDescriptor* mdesc = new vtkClampedMemberDescriptorImpl<C_,V_>( name, serializable, gmeth, smeth, min, max );
+  mdesc->Class = this;
+  this->Descriptors.push_back( mdesc );
+  return mdesc;
+}
+
 template< class C_, typename V_, int d_ >
-vtkMemberDescriptor* vtkClassDescriptor::AddMember(
+vtkMemberDescriptor* vtkClassDescriptor::AddPrimitiveVectorMember(
   vtkStdString name, bool serializable,
   typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::GetMemberType gmeth,
   typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::SetMemberType smeth )
@@ -64,14 +77,26 @@ vtkMemberDescriptor* vtkClassDescriptor::AddMember(
   return mdesc;
 }
 
-template< class C_, typename V_ >
-vtkMemberDescriptor* vtkClassDescriptor::AddMember(
+template< class C_, typename V_, int d_ >
+vtkMemberDescriptor* vtkClassDescriptor::AddPrimitiveVectorMember(
   vtkStdString name, bool serializable,
-  typename vtkMemberDescriptorImpl<C_,V_>::GetMemberType gmeth,
-  typename vtkMemberDescriptorImpl<C_,V_>::SetMemberType smeth,
-  V_ min, V_ max )
+  typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::GetMemberType gmeth,
+  typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::SetMemberType smeth,
+  V_ min[d_], V_ max[d_] )
 {
-  vtkMemberDescriptor* mdesc = new vtkClampedMemberDescriptorImpl<C_,V_>( name, serializable, gmeth, smeth, min, max );
+  vtkMemberDescriptor* mdesc = new vtkClampedMemberDescriptorVectorImpl<C_,V_,d_>( name, serializable, gmeth, smeth );
+  mdesc->Class = this;
+  this->Descriptors.push_back( mdesc );
+  return mdesc;
+}
+
+template< class C_, typename V_ >
+vtkMemberDescriptor* vtkClassDescriptor::AddObjectMember(
+  vtkStdString name, bool serializable,
+  typename vtkMemberDescriptorObjImpl<C_,V_>::GetMemberType gmeth,
+  typename vtkMemberDescriptorObjImpl<C_,V_>::SetMemberType smeth )
+{
+  vtkMemberDescriptor* mdesc = new vtkMemberDescriptorObjImpl<C_,V_>( name, serializable, gmeth, smeth );
   mdesc->Class = this;
   this->Descriptors.push_back( mdesc );
   return mdesc;

@@ -48,8 +48,18 @@ public:
   virtual void SetDefault( vtkVariant val ) { this->Default = val; }
   vtkClassDescriptor* GetClassDescriptor() { return this->Class; }
   virtual bool GetClamped() { return false; }
+
+  // Description:
+  // Convenience methods for retrieving scalar min/max values:
+  // If no min or max exists, the returned vtkVariant will be marked invalid.
   virtual vtkVariant GetMin() { return vtkVariant(); }
   virtual vtkVariant GetMax() { return vtkVariant(); }
+
+  // Description:
+  // Return one component of a vector min or max.
+  // If no min or max exists, the returned vtkVariant will be marked invalid.
+  virtual vtkVariant GetMin( int vtkNotUsed(component) ) { return vtkVariant(); }
+  virtual vtkVariant GetMax( int vtkNotUsed(component) ) { return vtkVariant(); }
 
 protected:
   vtkMemberDescriptor( vtkStdString name, bool serializable );

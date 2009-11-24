@@ -31,6 +31,7 @@ class vtkMemberDescriptor;
 template< class C_, typename V_ > class vtkMemberDescriptorObjImpl;
 template< class C_, typename V_ > class vtkMemberDescriptorImpl;
 template< class C_, typename V_, int d_ > class vtkMemberDescriptorVectorImpl;
+template< class C_ > class vtkMemberDescriptorVoidPImpl;
 class vtkClassDescriptorP;
 
 class VTK_COMMON_EXPORT vtkClassDescriptor
@@ -41,29 +42,25 @@ public:
   vtkClassDescriptor();
   virtual ~vtkClassDescriptor();
 
-  template< class C_, typename V_ >
-  vtkMemberDescriptor* AddObjectMember(
+  /// Add a member that points to an opaque type (implemented as a void pointer).
+  template< class C_ >
+  vtkMemberDescriptor* AddOpaquePointerMember(
     vtkStdString name,
     bool serializable,
-    typename vtkMemberDescriptorObjImpl<C_,V_>::GetMemberType gmeth,
-    typename vtkMemberDescriptorObjImpl<C_,V_>::SetMemberType smeth );
+    typename vtkMemberDescriptorVoidPImpl<C_>::GetMemberType gmeth,
+    typename vtkMemberDescriptorVoidPImpl<C_>::SetMemberType smeth );
 
+  /// Add a member that is a primitive type (and singular, not array-valued).
   template< class C_, typename V_ >
-  vtkMemberDescriptor* AddMember(
+  vtkMemberDescriptor* AddPrimitiveMember(
     vtkStdString name,
     bool serializable,
     typename vtkMemberDescriptorImpl<C_,V_>::GetMemberType gmeth,
     typename vtkMemberDescriptorImpl<C_,V_>::SetMemberType smeth );
 
-  template< class C_, typename V_, int d_ >
-  vtkMemberDescriptor* AddMember(
-    vtkStdString name,
-    bool serializable,
-    typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::GetMemberType gmeth,
-    typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::SetMemberType smeth );
-
+  /// Add a member that is a primitive type (and singular, not array-valued) with a minimum and maximum specified.
   template< class C_, typename V_ >
-  vtkMemberDescriptor* AddMember(
+  vtkMemberDescriptor* AddPrimitiveMember(
     vtkStdString name,
     bool serializable,
     typename vtkMemberDescriptorImpl<C_,V_>::GetMemberType gmeth,
@@ -71,16 +68,43 @@ public:
     V_ min,
     V_ max );
 
+  /// Add a member that is a vector of primitive types.
+  template< class C_, typename V_, int d_ >
+  vtkMemberDescriptor* AddPrimitiveVectorMember(
+    vtkStdString name,
+    bool serializable,
+    typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::GetMemberType gmeth,
+    typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::SetMemberType smeth );
+
+  /// Add a member that is a vector of primitive types with a minimum and maximum specified.
+  template< class C_, typename V_, int d_ >
+  vtkMemberDescriptor* AddPrimitiveVectorMember(
+    vtkStdString name,
+    bool serializable,
+    typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::GetMemberType gmeth,
+    typename vtkMemberDescriptorVectorImpl<C_,V_,d_>::SetMemberType smeth,
+    V_ min[d_],
+    V_ max[d_] );
+
+  /// Add a member that points to a subclass of vtkObject.
+  template< class C_, typename V_ >
+  vtkMemberDescriptor* AddObjectMember(
+    vtkStdString name,
+    bool serializable,
+    typename vtkMemberDescriptorObjImpl<C_,V_>::GetMemberType gmeth,
+    typename vtkMemberDescriptorObjImpl<C_,V_>::SetMemberType smeth );
+
   int GetNumberOfMembers();
   vtkMemberDescriptor* GetMemberDescriptor( int i );
   vtkMemberDescriptor* GetMemberDescriptor( vtkStdString memberName );
 
+  /// Return the class name.
   vtkStdString GetName() { return this->Name; }
 
   /// Return an object describing attributes of a class.
   static vtkClassDescriptor* GetClassDescriptor( const char* className );
 
-  /// Destroy class descriptors to make memory allocation debuggers happy.
+  /// Destroy class descriptors to make memory allocation debuggers happy. Normally called for you by an atexit() callback.
   static void CleanupClassDescriptors();
 
 protected:

@@ -20,6 +20,49 @@
 #include "vtkMemberDescriptor.h"
 #include "vtkTypeTraits.h"
 
+template< class C_ >
+class VTK_COMMON_EXPORT vtkMemberDescriptorVoidPImpl : public vtkMemberDescriptor
+{
+public:
+  virtual int GetType()
+    {
+    return VTK_OPAQUE;
+    }
+  virtual vtkVariant GetValue( vtkObject* cls )
+    {
+    return (static_cast<C_*>( cls )->*GetMethod)();
+    }
+  virtual vtkVariant GetValue( vtkObject* cls, int vtkNotUsed(component) )
+    {
+    return (static_cast<C_*>( cls )->*GetMethod)();
+    }
+  virtual void SetValue( vtkObject* cls, vtkVariant val )
+    {
+    (static_cast<C_*>( cls )->*SetMethod)( vtkVariantConverter( val ) );
+    }
+  virtual void SetValue( vtkObject* cls, int vtkNotUsed(component), vtkVariant val )
+    {
+    (static_cast<C_*>( cls )->*SetMethod)( vtkVariantConverter( val ) );
+    }
+protected:
+  friend class vtkClassDescriptor;
+  typedef void (C_::*SetMemberType)( void* );
+  typedef void* (C_::*GetMemberType)();
+
+  vtkMemberDescriptorVoidPImpl( vtkStdString name, bool serializable, GetMemberType gmeth, SetMemberType smeth )
+    : vtkMemberDescriptor( name, serializable )
+    {
+    // NB: C_::ClassDescriptor hasn't been set inside C_::PrepareDescriptor yet, so the next won't work:
+    // this->Class = C_::ClassDescriptor;
+    this->Class = 0;
+    this->SetMethod = smeth;
+    this->GetMethod = gmeth;
+    }
+
+  SetMemberType SetMethod;
+  GetMemberType GetMethod;
+};
+
 template< class C_, typename V_ >
 class VTK_COMMON_EXPORT vtkMemberDescriptorImpl : public vtkMemberDescriptor
 {
@@ -73,7 +116,15 @@ public:
     {
     return vtkVariant( this->Min );
     }
+  virtual vtkVariant GetMin( int vtkNotUsed(component) )
+    {
+    return vtkVariant( this->Min );
+    }
   virtual vtkVariant GetMax()
+    {
+    return vtkVariant( this->Max );
+    }
+  virtual vtkVariant GetMax( int vtkNotUsed(component) )
     {
     return vtkVariant( this->Max );
     }
@@ -140,6 +191,41 @@ protected:
 
   SetMemberType SetMethod;
   GetMemberType GetMethod;
+};
+
+template< class C_, typename V_, int d_ >
+class VTK_COMMON_EXPORT vtkClampedMemberDescriptorVectorImpl : public vtkMemberDescriptorVectorImpl<C_,V_,d_>
+{
+public:
+  virtual bool GetClamped() { return true; }
+  virtual vtkVariant GetMin()
+    {
+    return this->GetMin( 0 );
+    }
+  virtual vtkVariant GetMax()
+    {
+    return this->GetMax( 0 );
+    }
+  virtual vtkVariant GetMin( int component )
+    {
+    return vtkVariant( this->Min[component] );
+    }
+  virtual vtkVariant GetMax( int component )
+    {
+    return vtkVariant( this->Max[component] );
+    }
+protected:
+  friend class vtkClassDescriptor;
+  typedef void (C_::*SetMemberType)( V_[d_] );
+  typedef void (C_::*GetMemberType)( V_[d_] );
+
+  vtkClampedMemberDescriptorVectorImpl( vtkStdString name, bool serializable, GetMemberType gmeth, SetMemberType smeth, V_ min[d_], V_ max[d_] )
+    : vtkMemberDescriptorVectorImpl<C_,V_,d_>( name, serializable, gmeth, smeth ), Min( min ), Max( max )
+    {
+    }
+
+  V_ Min[d_];
+  V_ Max[d_];
 };
 
 template< class C_, typename V_ >

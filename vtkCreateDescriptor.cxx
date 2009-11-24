@@ -401,7 +401,7 @@ void writeClassDescriptor(
     vtkstd::string memberAccess = *desc; ++ desc;
     vtkstd::string memberType = *desc; ++ desc;
     vtkstd::string memberTypeName;
-    vtkstd::string addMethod = "AddMember";
+    vtkstd::string addMethod = "AddPrimitiveMember";
     if ( memberType == "VTK_VOID" ) memberTypeName = "void";
     else if ( memberType == "VTK_BIT" ) memberTypeName = "bit";
     else if ( memberType == "VTK_CHAR" ) memberTypeName = "char";
@@ -423,6 +423,7 @@ void writeClassDescriptor(
     else if ( memberType == "VTK_STRING" ) memberTypeName = "vtkStdString";
     else if ( memberType == "VTK_UNICODE_STRING" ) memberTypeName = "vtkUnicodeString";
     else if ( memberType == "VTK_VARIANT" ) memberTypeName = "vtkVariant";
+    else if ( memberType == "VTK_OPAQUE" ) { memberTypeName = "void*"; addMethod = "AddOpaquePointerMember"; }
     else if ( memberType == "VTK_OBJECT" ) { memberTypeName = "vtkObject"; addMethod = "AddObjectMember"; }
     else memberTypeName = "Undefined";
     int memberComponents = 1;
@@ -437,6 +438,10 @@ void writeClassDescriptor(
         {
         printf( "Bad member %s %s %s. Skipping\n", memberName.c_str(), memberAccess.c_str(), memberType.c_str() ); 
         }
+      }
+    if ( memberComponents > 1 )
+      { // Currently only vectors of primitives are supported.
+      addMethod = "AddPrimitiveVectorMember";
       }
 
     bool memberSerial = ( memberAccess == "RO" ? false : true );
@@ -501,15 +506,30 @@ void writeClassDescriptor(
       { // Both Set and Get methods exist
       if ( memberComponents <= 1 )
         {
-        fprintf( dsc,
-          "  mdesc = cdesc->%s<%s,%s>( \"%s\", %s, &%s::Get%s, &%s::Set%s );\n",
-          addMethod.c_str(),
-          classname, memberTypeName.c_str(),
-          memberName.c_str(),
-          memberSerial ? "true" : "false",
-          classname, memberName.c_str(),
-          classname, memberName.c_str()
-        );
+        if ( addMethod == "AddOpaquePointerMember" )
+          {
+          fprintf( dsc,
+            "  mdesc = cdesc->%s<%s>( \"%s\", %s, &%s::Get%s, &%s::Set%s );\n",
+            addMethod.c_str(),
+            classname,
+            memberName.c_str(),
+            memberSerial ? "true" : "false",
+            classname, memberName.c_str(),
+            classname, memberName.c_str()
+          );
+          }
+        else
+          {
+          fprintf( dsc,
+            "  mdesc = cdesc->%s<%s,%s>( \"%s\", %s, &%s::Get%s, &%s::Set%s );\n",
+            addMethod.c_str(),
+            classname, memberTypeName.c_str(),
+            memberName.c_str(),
+            memberSerial ? "true" : "false",
+            classname, memberName.c_str(),
+            classname, memberName.c_str()
+          );
+          }
         }
       else
         {
@@ -528,14 +548,28 @@ void writeClassDescriptor(
       { // Only a Get method exists
       if ( memberComponents <= 1 )
         {
-        fprintf( dsc,
-          "  mdesc = cdesc->%s<%s,%s>( \"%s\", %s, &%s::Get%s, 0 );\n",
-          addMethod.c_str(),
-          classname, memberTypeName.c_str(),
-          memberName.c_str(),
-          memberSerial ? "true" : "false",
-          classname, memberName.c_str()
-        );
+        if ( addMethod == "AddOpaquePointerMember" )
+          {
+          fprintf( dsc,
+            "  mdesc = cdesc->%s<%s>( \"%s\", %s, &%s::Get%s, 0 );\n",
+            addMethod.c_str(),
+            classname,
+            memberName.c_str(),
+            memberSerial ? "true" : "false",
+            classname, memberName.c_str()
+          );
+          }
+        else
+          {
+          fprintf( dsc,
+            "  mdesc = cdesc->%s<%s,%s>( \"%s\", %s, &%s::Get%s, 0 );\n",
+            addMethod.c_str(),
+            classname, memberTypeName.c_str(),
+            memberName.c_str(),
+            memberSerial ? "true" : "false",
+            classname, memberName.c_str()
+          );
+          }
         }
       else
         {
